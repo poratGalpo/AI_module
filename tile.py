@@ -2,7 +2,6 @@ class tile():
 
 
 
-
     def get_tile_mapping(self):
         """
         A method for checking the static variables values
@@ -102,6 +101,8 @@ class tile():
         return self.ERROR
     def get_UnreachableVal(self):
         return self.UNREACHABLE
+    def get_car_directions(self):
+        return _directions
     def __str__(self):
         return str(self._defaultVal)
     def __init__(self):
@@ -119,6 +120,7 @@ class tile():
         self.CAR         =  '9'
         self._defaultVal = self.UNMAPPED
         self.data = self._defaultVal
+        self._directions = {'1':'UP','2':'DOWN', '3':'RIGHT', '4':'LEFT'}
 
 
 

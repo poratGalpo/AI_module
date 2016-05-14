@@ -41,6 +41,11 @@ class boardReceiverInterface():
         """
         return [[(random.choice(self._tile.get_tile_mapping().values())) for i in range(xVal)] for j in range(yVal)]
 
+    def convert_to_board_instance(self,data):
+        raise self.BR_NotImplemented('convert to board instance')
+
+    def get_car_direction(self,data):
+        raise self.BR_NotImplemented('convert to board instance')
 
 class stub_boardReceiver(boardReceiverInterface):
 

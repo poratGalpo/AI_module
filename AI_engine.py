@@ -56,7 +56,19 @@ class engine_interface():
         """
         raise self.AIE_NotImplemented('get_next_coordinate')
 
-
+    def calculate_optimal_coordinate(self):
+        """
+        This method uses a calculation library which regardless of the previous coordinates calculates the
+        by portability the optimal coordinate for scanning
+        :return: coordinate instance
+        """
+        raise self.AIE_NotImplemented('calculate_optimal_coordinate')
+    def is_mapping_done(self):
+        """
+        checks whether the map is surrounded with obstacles
+        :return: 1 if true, 0 otherwise
+        """
+        raise self.AIE_NotImplemented('is_mapping_done')
 class stub_engine(engine_interface):
 
     coordinate = coordinate(0,0)

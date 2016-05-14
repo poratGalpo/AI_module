@@ -588,6 +588,17 @@ class board():
         :return: True upon success, False otherwise
         """
         pass
+    def get_obstacles_map(self):
+        raise self.impossible_action_exception('need to be implemented')
+    def get_nearest_obstacle(self):
+        raise self.impossible_action_exception('need to be implemented')
+    def get_obstacles_locations(self):
+        """
+        :return: an array depicting the coordinates where obstacles are
+        """
+        raise self.impossible_action_exception('need to be implemented')
+    def is_all_wall_ahead(self, direction):
+        raise self.impossible_action_exception('need to be implemented')
 
     def get_carLocation(self):
         pass

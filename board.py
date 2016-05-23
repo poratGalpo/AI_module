@@ -2,7 +2,7 @@ import sys
 from tile import tile
 import threading
 import random
-
+from AI_engine import coordinate
 
 class board():
 
@@ -15,7 +15,6 @@ class board():
     __carPlacement = None
     __CAR_INITIAL_DIRECTION = None      # dictionary with the keys: x,y,val where val is the car's direction value
     rotational_pivot = None     #   in case that car's mechanics is not flexible
-
 
 
 
@@ -53,6 +52,7 @@ class board():
 
             if carPlacement == None or type(carPlacement) != type({}):
                 flag = self.initial_car_placement(int((xVal-1)/2), int((yVal-1)/2))
+                print flag
             else:
                 try:
                     flag = self.initial_car_placement(carPlacement['x'],carPlacement['y'])
@@ -64,8 +64,8 @@ class board():
             if flag == False:
                 raise self.impossible_action_exception("Error car's initial placement")
     def set_initial_direction(self):
-        directions = self._tile.get_directions_dict()
-        self.__CAR_INITIAL_DIRECTION = directions['CU']
+        directions = self._tile.get_car_directions()
+        self.__CAR_INITIAL_DIRECTION = directions[directions.keys()[0]]
     def __str__(self):
 
         string_model = ''
@@ -87,6 +87,8 @@ class board():
         can't go through this place
         :param which: Int ranged 1-4
         :return: True if wall, False otherwise. raises exception on error
+        """
+        pass
         """
         if which<1 or which >4 :
             raise self.impossible_action_exception("Adjacent cell represenation is from 1 to 4")
@@ -111,7 +113,7 @@ class board():
             if locX-1 < 0:
                 return True
             return (self.get_cell_val(locX-1,locY) != free_val) and (self.get_cell_val(locX-1,locY) != unmapped_val)
-        pass
+        """
     def get_board_size(self):
         """
         This method returns a dictionary with the size of the board
@@ -265,10 +267,10 @@ class board():
         elif (current_cell_value == self._tile.get_FreeVal()):
             return False
 
-        if self.__CAR_INITIAL_DIRECTION == None:
-            self.set_initial_direction()
-        self.__carPlacement = {'x':locX,'y':locY,'val':self.__CAR_INITIAL_DIRECTION}
-        return self.set_cell(locX,locY,self.__CAR_INITIAL_DIRECTION)
+        car_val = self._tile.get_CarVal()
+        self.__carPlacement = {'x':locX,'y':locY,'val':car_val}
+        return self.set_cell(locX,locY,car_val)
+
     def set_movement_cell(self,val,locX,locY):
         """
         In case of changing the car's direction, this method change the tile value
@@ -588,7 +590,23 @@ class board():
         :return: True upon success, False otherwise
         """
         pass
+    def get_obstacles_coordinates_list(self):
+        """
+        for each tile valued as wall, return its location
+        :return: list of Coordinates
+        """
+        wall_val = self._tile.get_WallVal()
+        indexX = 0
+        indexY = 0
+        obstacles_list = []
+        for indexY in range(0,len(self._instance)):
+            for indexX in range(0,len(self._instance[0])):
+                if self.get_cell_val(indexX,indexY) == wall_val:
+                    new_co = coordinate(indexX,indexY)
+                    obstacles_list.append(new_co)
+        return obstacles_list
     def get_obstacles_map(self):
+
         raise self.impossible_action_exception('need to be implemented')
     def get_nearest_obstacle(self):
         raise self.impossible_action_exception('need to be implemented')
@@ -607,6 +625,8 @@ if __name__ == '__main__':
 
     newBoard = board()
     print newBoard
+    print newBoard.get_obstacles_coordinates_list()
+    sys.exit()
     print '*********'
     newBoard.randomize_walls()
     print newBoard

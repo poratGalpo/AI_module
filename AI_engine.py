@@ -1,7 +1,7 @@
 import sys
 import boardReceiver
 import random
-
+import math
 class coordinate():
 
     _x = None
@@ -69,6 +69,8 @@ class engine_interface():
         :return: 1 if true, 0 otherwise
         """
         raise self.AIE_NotImplemented('is_mapping_done')
+
+
 class stub_engine(engine_interface):
 
     coordinate = coordinate(0,0)
@@ -101,6 +103,50 @@ class stub_engine(engine_interface):
 
         self.push_to_stack(target_co)
         return target_co
+
+
+
+class engine_v1(engine_interface):
+
+    DEFAULT_CAR_POSITION = coordinate(4,4)
+    receiver = boardReceiver.stub_boardReceiver()
+    _board = receiver.get_board()
+
+    try:
+        car_position = _board.getPosition()
+    except:
+        car_position = DEFAULT_CAR_POSITION
+
+    def calculate_distance(self,x1,x2,y1,y2):
+        distance = math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))
+        rnd_distance = round(distance,3)
+        return rnd_distance
+
+    def calc_prob_factor(self, distance, value ):
+        pass
+    def calc_tile_simple_imp(self,distance,value):
+        tile_instance = self.receiver.get_board().get_tile()
+        new_assignment= {tile_instance.get_FreeVal():0.5, tile_instance.get_UnmappedVal():1, tile_instance.get_WallVal():0}
+        if value not in new_assignment:
+            raise self.AIE_NotImplemented('No assignment for value {0}'.format(value))
+        else:
+            return round(distance*new_assignment[value],3)
+
+    def calculate_optimal_coordinate(self):
+        bestResult = -1
+        bestCoordinate = None
+        car_location = self._board.get_carLocation()
+        carX = car_location['x']
+        carY = car_location['y']
+        for indexY in range(0,len(boardReceiver)):
+            for indexX in range(0,len(boardReceiver)):
+                currVal = self._board[indexY][indexX]
+                calc_result = self.calc_tile_simple_imp(self.calculate_distance(carX, indexX, carY, indexY), currVal)
+                self._board[indexY][indexX] = calc_result
+                if calc_result > bestResult:
+                    bestResult = calc_result
+                    bestCoordinate = coordinate(indexX, indexY)
+        return bestCoordinate
 
 
 if __name__ == '__main__':

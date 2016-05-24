@@ -154,6 +154,10 @@ class board():
                 result.append(val)
 
         return result
+
+    def get_tile(self):
+        return self._tile
+
     def get_xy_map(self,sizeX,sizeY):
         """
         This method is responsible for for cropping a map sized X*Y around the car

@@ -1,6 +1,8 @@
 import sys
 import random
 import tile
+import board
+
 class boardReceiverInterface():
 
     _tile = tile.tile()
@@ -51,12 +53,13 @@ class stub_boardReceiver(boardReceiverInterface):
 
     X_default_size = 10
     Y_default_size = 10
-
+    _board = board.board(random_values=1)
     def receive_board(self):
         print "Receiving board of size {0}X{1}\n(default size)".format(self.X_default_size, self.Y_default_size)
 
     def get_board(self):
-        return self.init_board(xVal= self.X_default_size, yVal= self.Y_default_size)
+        return self._board
+#        return self.init_board(xVal= self.X_default_size, yVal= self.Y_default_size)
 
 if __name__ == '__main__':
 

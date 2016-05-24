@@ -99,12 +99,10 @@ class tile():
         return self.FELLOW
     def get_ErrorVal(self):
         return self.ERROR
-    def get_CarVal(self):
-        return self.CAR
     def get_UnreachableVal(self):
         return self.UNREACHABLE
     def get_car_directions(self):
-        return self._directions
+        return _directions
     def __str__(self):
         return str(self._defaultVal)
     def __init__(self):

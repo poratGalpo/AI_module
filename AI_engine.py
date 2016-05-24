@@ -2,6 +2,7 @@ import sys
 import boardReceiver
 import random
 import math
+
 class coordinate():
 
     _x = None

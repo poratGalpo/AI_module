@@ -102,7 +102,9 @@ class tile():
     def get_UnreachableVal(self):
         return self.UNREACHABLE
     def get_car_directions(self):
-        return _directions
+        return self._directions
+    def get_carVal(self):
+        return self.CAR
     def __str__(self):
         return str(self._defaultVal)
     def __init__(self):

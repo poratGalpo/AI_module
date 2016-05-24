@@ -4,6 +4,7 @@ import threading
 import random
 from AI_engine import coordinate
 
+
 class board():
 
     _lock = threading.RLock()
@@ -602,7 +603,8 @@ class board():
         raise self.impossible_action_exception('need to be implemented')
     def is_all_wall_ahead(self, direction):
         raise self.impossible_action_exception('need to be implemented')
-     def get_obstacles_coordinates_list(self):
+
+    def get_obstacles_coordinates_list(self):
         """
         for each tile valued as wall, return its location
         :return: list of Coordinates
@@ -611,10 +613,10 @@ class board():
         indexX = 0
         indexY = 0
         obstacles_list = []
-        for indexY in range(0,len(self._instance)):
-            for indexX in range(0,len(self._instance[0])):
-                if self.get_cell_val(indexX,indexY) == wall_val:
-                    new_co = coordinate(indexX,indexY)
+        for indexY in range(0, len(self._instance)):
+            for indexX in range(0, len(self._instance[0])):
+                if self.get_cell_val(indexX, indexY) == wall_val:
+                    new_co = coordinate(indexX, indexY)
                     obstacles_list.append(new_co)
         return obstacles_list
     def get_carLocation(self):

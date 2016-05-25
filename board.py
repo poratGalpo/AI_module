@@ -2,7 +2,7 @@ import sys
 from tile import tile
 import threading
 import random
-from AI_engine import coordinate
+import coordinate
 
 
 class board():
@@ -54,6 +54,7 @@ class board():
 
             if carPlacement == None or type(carPlacement) != type({}):
                 flag = self.initial_car_placement(int((xVal-1)/2), int((yVal-1)/2))
+                print flag
             else:
                 try:
                     flag = self.initial_car_placement(carPlacement['x'],carPlacement['y'])
@@ -217,7 +218,10 @@ class board():
         return tempBoard
     def init_board(self, xVal, yVal,random_values=0):
         if random_values == 1:
-            return [[(random.choice(self._tile.get_tile_mapping().values())) for i in range(xVal)] for j in range(yVal)]
+            mapping_vals = self._tile.get_tile_mapping().values()
+            car_val = self._tile.get_CarVal()
+            mapping_vals.remove(car_val)
+            return [[(random.choice(mapping_vals)) for i in range(xVal)] for j in range(yVal)]
         return [[self._tile.data for i in range(xVal)] for j in range(yVal)]
     def set_cell(self,locX,locY,val):
         """
@@ -616,7 +620,7 @@ class board():
         for indexY in range(0, len(self._instance)):
             for indexX in range(0, len(self._instance[0])):
                 if self.get_cell_val(indexX, indexY) == wall_val:
-                    new_co = coordinate(indexX, indexY)
+                    new_co = coordinate.coordinate(indexX, indexY)
                     obstacles_list.append(new_co)
         return obstacles_list
     def get_carLocation(self):
@@ -624,9 +628,10 @@ class board():
 if __name__ == '__main__':
 
 
-    newBoard = board()
+    newBoard = board(random_values=1)
     print newBoard
-    print newBoard.get_obstacles_coordinates_list()
+    for c in  newBoard.get_obstacles_coordinates_list():
+        print (c.get_x(),c.get_y())
     sys.exit()
     newBoard.randomize_walls()
     print newBoard

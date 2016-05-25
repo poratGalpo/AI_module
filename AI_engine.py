@@ -1,44 +1,9 @@
 import sys
-import boardReceiver
 import random
 import math
+from boardReceiver import stub_boardReceiver
+from coordinate import coordinate
 
-class coordinate():
-
-    _x = None
-    _y = None
-
-    def __init__(self, x, y):
-        self._x = x
-        self._y = y
-
-    def get_x(self):
-        return self._x
-
-    def get_y(self):
-        return self._y
-
-    def set_x(self, x):
-        self._x = x
-        print 'Coordinate x was updated successfully'
-
-    def set_y(self, y):
-        self._y = y
-        print 'Coordinate y was updated successfully'
-
-    def compare_two_coordinates(self, C1, C2):
-        """
-        receives two coordinates and returns True if  the are equal
-        :param C1:
-        :param C2:
-        :return: True if identical, False otherwise
-        """
-        if C1.get_x == C2.get_x and C1.get_y == C2.get_y:
-            return True
-        return False
-
-    def __str__(self):
-        return "<{0},{1}>".format(self._x, self._y)
 
 class engine_interface():
 
@@ -76,7 +41,8 @@ class stub_engine(engine_interface):
 
     coordinate = coordinate(0,0)
     steps_stack = []
-    _boardReceiver = boardReceiver.stub_boardReceiver()
+
+#    _boardReceiver = boardReceiver.stub_boardReceiver()
 
     def push_to_stack(self,C):
         self.steps_stack.append(C)
@@ -110,7 +76,7 @@ class stub_engine(engine_interface):
 class engine_v1(engine_interface):
 
     DEFAULT_CAR_POSITION = coordinate(4,4)
-    receiver = boardReceiver.stub_boardReceiver()
+    receiver = stub_boardReceiver()
     _board = receiver.get_board()
 
     try:
@@ -125,25 +91,31 @@ class engine_v1(engine_interface):
 
     def calc_prob_factor(self, distance, value ):
         pass
+
+
     def calc_tile_simple_imp(self,distance,value):
         tile_instance = self.receiver.get_board().get_tile()
         new_assignment= {tile_instance.get_FreeVal():0.5, tile_instance.get_UnmappedVal():1, tile_instance.get_WallVal():0}
         if value not in new_assignment:
-            raise self.AIE_NotImplemented('No assignment for value {0}'.format(value))
-        else:
-            return round(distance*new_assignment[value],3)
+            new_assignment[value] = 0.01
+#            raise self.AIE_NotImplemented('No assignment for value {0}'.format(value))
+#        else:
+        return round(distance*new_assignment[value],3)
+
 
     def calculate_optimal_coordinate(self):
+        self._board = self.receiver.get_board()
+        print self._board
         bestResult = -1
         bestCoordinate = None
-        car_location = self._board.get_carLocation()
+        car_location = self._board.get_car_placement()
         carX = car_location['x']
         carY = car_location['y']
-        for indexY in range(0,len(boardReceiver)):
-            for indexX in range(0,len(boardReceiver)):
-                currVal = self._board[indexY][indexX]
+        for indexY in range(0, len(self._board._instance)):
+            for indexX in range(0, len(self._board._instance[0])):
+                currVal = self._board._instance[indexY][indexX]
                 calc_result = self.calc_tile_simple_imp(self.calculate_distance(carX, indexX, carY, indexY), currVal)
-                self._board[indexY][indexX] = calc_result
+                self._board._instance[indexY][indexX] = calc_result
                 if calc_result > bestResult:
                     bestResult = calc_result
                     bestCoordinate = coordinate(indexX, indexY)
@@ -152,5 +124,5 @@ class engine_v1(engine_interface):
 
 if __name__ == '__main__':
 
-    engn = stub_engine()
-    print engn.get_next_coordinate()
+    engn = engine_v1()
+    print engn.calculate_optimal_coordinate()

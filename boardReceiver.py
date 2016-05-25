@@ -49,11 +49,21 @@ class boardReceiverInterface():
     def get_car_direction(self,data):
         raise self.BR_NotImplemented('convert to board instance')
 
+
 class stub_boardReceiver(boardReceiverInterface):
 
     X_default_size = 10
     Y_default_size = 10
-    _board = board.board(random_values=1)
+    _board = None
+
+    def __init__(self):
+        """
+
+        :rtype: stub_boardReceiver
+        """
+        self._board = board.board(random_values=1)
+        return
+
     def receive_board(self):
         print "Receiving board of size {0}X{1}\n(default size)".format(self.X_default_size, self.Y_default_size)
 

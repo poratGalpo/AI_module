@@ -103,7 +103,7 @@ class tile():
         return self.UNREACHABLE
     def get_car_directions(self):
         return self._directions
-    def get_carVal(self):
+    def get_CarVal(self):
         return self.CAR
     def __str__(self):
         return str(self._defaultVal)

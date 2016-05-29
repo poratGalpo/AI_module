@@ -1,10 +1,10 @@
 import sys
+import math
 from tile import tile
 import threading
 import random
 import coordinate
-
-
+from copy import deepcopy
 class board():
 
     _lock = threading.RLock()
@@ -14,15 +14,14 @@ class board():
     _instance = None
     car_default_initial_placement = [4, 4]
     __carPlacement = None
-    __CAR_INITIAL_DIRECTION = None      # dictionary with the keys: x,y,val where val is the car's direction value
-    rotational_pivot = None     #   in case that car's mechanics is not flexible
 
 
 
 
 
 
-    def __init__(self,boardSize = None,carPlacement = None,random_values = 0,rotational_pivot = 1):
+
+    def __init__(self,boardSize = None,carPlacement = None,random_values = 0, preMade_data = None,param_tile = None):
         """
         This method initializes a singleton of a board,a two dimensional array of various tiles and a car tile
         :param boardSize: dictionary of the form {'x': Int, 'y':Int}
@@ -30,10 +29,21 @@ class board():
         :param random_values: tells the generator whether to randomize tile values
         :return:
         """
-        xVal = None         #   Setted x value
-        yVal = None         #   Setted y value
-        self.rotational_pivot = rotational_pivot
-        if board._instance == None:
+
+        #   To save the amount of memory, tile instance can be set as an input
+        if param_tile is None:
+            self._tile = tile()
+        else:
+            self._tile = tile
+
+        #   board data should be received at real time environment, but should be generated
+        #   randomly for testing purposes
+        if preMade_data is not None:
+            self._instance = preMade_data
+
+        elif board._instance is None :
+            xVal = None         #   Setted x value
+            yVal = None         #   Setted y value
             if boardSize == None or type(boardSize) != type({}):
                 if random_values == 0:
                     board._instance =self.init_board(board._defaultX, board._defaultY)
@@ -65,11 +75,11 @@ class board():
                     raise self.impossible_action_exception("Cannot place car outside of the board borders")
             if flag == False:
                 raise self.impossible_action_exception("Error car's initial placement")
-    def set_initial_direction(self):
-        directions = self._tile.get_car_directions()
-        self.__CAR_INITIAL_DIRECTION = directions[directions.keys()[0]]
     def __str__(self):
-
+        """
+        This methoud prints out the _instance board as a string representation
+        :return: None
+        """
         string_model = ''
         for row in self._instance:
             for cell in row:
@@ -157,10 +167,8 @@ class board():
                 result.append(val)
 
         return result
-
     def get_tile(self):
         return self._tile
-
     def get_xy_map(self,sizeX,sizeY):
         """
         This method is responsible for for cropping a map sized X*Y around the car
@@ -231,7 +239,6 @@ class board():
         :param val: new cell's value
         :return: True upon success, exception if illegal location, False if value is not found
         """
-
         legal_values = self._tile.get_tile_mapping()
         for key in legal_values:
             if legal_values[key] == val:
@@ -277,7 +284,217 @@ class board():
         car_val = self._tile.get_CarVal()
         self.__carPlacement = {'x':locX,'y':locY,'val':car_val}
         return self.set_cell(locX,locY,car_val)
-    def set_movement_cell(self,val,locX,locY):
+    def expand_board(self,addX,addY,placementX,placementY):
+        pass
+    def replace_two_tile(self,locX1,locX2,locY1,locY2,val1,val2):
+        """
+        This method is designed to replace two tiles with a value without having to take a risk,
+        one or more tile would be changed as a result of multi-tasking
+        note that this method does not check if the vales are legal
+        :param locX1:   first location
+        :param locX2:   second location
+        :param locY1:
+        :param locY2:
+        :param val1:    replace tile1_val to
+        :param val2:    replace tile2_val to
+        :return: True if successful, False otherwise
+        """
+        with self._lock:
+            return (self.set_cell(locX1,locY1,val1)) and  (self.set_cell(locX2,locY2,val2))
+    def randomize_walls(self,number=None):
+        """
+        This method creates random walls
+        :return: None
+        """
+        if number == None:
+            number = self._defaultX
+        board_size = self.get_board_size()
+        wall_val = self._tile.get_WallVal()
+        car_val = self._tile.get_CarVal()
+        for x in range(number):
+            flag= False
+            while flag==False:
+                randX = random.randint(0,board_size['x']-1)
+                randY = random.randint(0,board_size['y']-1)
+                if self.get_cell_val(randX,randY) != car_val:
+                    flag = self.set_cell(randX,randY,wall_val)
+        return None
+    def insert_row_front(self,data = None):
+        """
+        This method adds a row of tiles at the upper bound of the board
+        :param data: contains pre-made data, if None the we will randomize one
+        :return: True if successful, False otherwise
+        """
+        if data == None:
+            data =[]
+            for i in range(len(self._instance[0])):
+                data.append(random.choice(self._tile.get_tile_mapping().values()))
+        else:
+            if len(data) != len(self._instance[0]):
+                return False
+        try:
+            self._instance.insert(0,data)
+        except:
+            return False
+
+        return True
+    def insert_row_right(self,data = None):
+        """
+        This method adds a column of tiles at the right bound of the board
+        :param data: contains pre-made data, if None the we will randomize one
+        :return: True if successful, False otherwise
+        """
+        if data == None:
+            data =[]
+            for i in range(len(self._instance)):
+                data.append(random.choice(self._tile.get_tile_mapping().values()))
+        else:
+            if len(data) != len(self._instance):
+                return False
+        try:
+            for index in range (len(self._instance)):
+                self._instance[index].append(data[index])
+        except:
+            return False
+
+        return True
+    def insert_row_back(self,data = None):
+        """
+        This method adds a row of tiles at the rear bound of the board
+        :param data: contains pre-made data, if None the we will randomize one
+        :return: True if successful, False otherwise
+        """
+        if data == None:
+            data =[]
+            for i in range(len(self._instance[0])):
+                data.append(random.choice(self._tile.get_tile_mapping().values()))
+        else:
+            if len(data) != len(self._instance[0]):
+                return False
+        try:
+            self._instance.append(data)
+        except:
+            return False
+
+        return True
+    def insert_row_right(self,data = None):
+        """
+        This method adds a column of tiles at the left bound of the board
+        :param data: contains pre-made data, if None the we will randomize one
+        :return: True if successful, False otherwise
+        """
+        if data == None:
+            data =[]
+            for i in range(len(self._instance)):
+                data.append(random.choice(self._tile.get_tile_mapping().values()))
+        else:
+            if len(data) != len(self._instance):
+                return False
+        try:
+            for index in range (len(self._instance)):
+                self._instance[index].insert(0,data[index])
+        except:
+            return False
+
+        return True
+    def get_obstacles_map(self):
+        """
+        This method takes the board instance and returns a 2d array composed of
+        tile that are obstacles and tile that are car/not obstacles
+        :return:
+        """
+        temp_board = deepcopy(self._instance)
+        wall_val = self._tile.get_WallVal()
+        car_val = self._tile.get_CarVal()
+        otherwise_val = self._tile.get_UnreachableVal()
+        for yIndex in range(0,len(temp_board)):
+            for xIndex in range(0,len(temp_board[0])):
+                if temp_board[yIndex][xIndex] !=wall_val and temp_board[yIndex][xIndex] != car_val:
+                    temp_board[yIndex][xIndex] = otherwise_val
+        return temp_board
+    def calculate_distance(self,x1,x2,y1,y2):
+        distance = math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))
+        rnd_distance = round(distance,3)
+        return rnd_distance
+
+    def get_nearest_tileVal(self,tileVal):
+        """
+        This method returns the coordinate of the closest tileVal according to the car's position
+        The main algorithm is checking the nearest cells clockwise,and expand if necessary
+        :param tileVal: legal tileVal to be found
+        :return: the tile coordinate if exists, -1 other if no such can be found
+        """
+
+        carPlacement = self.get_car_placement()
+        boardSize = self.get_board_size()
+        if carPlacement['x'] == -1 or carPlacement['y'] == -1:
+            return -1
+        carX = carPlacement['x']
+        carY = carPlacement['y']
+        boardX = boardSize['x']
+        boardY = boardSize['y']
+        #   We need to find the maximum number of iterations allows
+        iterationNumber = max(carX,(boardX-carX),carY,(boardY-carY))
+        #for iterationIndex in range(0,iterationNumber):
+
+        raise self.impossible_action_exception('need to be implemented')
+    def get_obstacles_locations(self):
+        """
+        :return: an array depicting the coordinates where obstacles are
+        """
+        raise self.impossible_action_exception('need to be implemented')
+    def is_all_wall_ahead(self, direction):
+        raise self.impossible_action_exception('need to be implemented')
+    def get_obstacles_coordinates_list(self):
+        """
+        for each tile valued as wall, return its location
+        :return: list of Coordinates
+        """
+        wall_val = self._tile.get_WallVal()
+        indexX = 0
+        indexY = 0
+        obstacles_list = []
+        for indexY in range(0, len(self._instance)):
+            for indexX in range(0, len(self._instance[0])):
+                if self.get_cell_val(indexX, indexY) == wall_val:
+                    new_co = coordinate.coordinate(indexX, indexY)
+                    obstacles_list.append(new_co)
+        return obstacles_list
+
+if __name__ == '__main__':
+
+
+    newBoard = board(random_values=1)
+    print newBoard
+    print newBoard.get_obstacles_map()
+    print newBoard
+    sys.exit()
+    for c in  newBoard.get_obstacles_coordinates_list():
+        print (c.get_x(),c.get_y())
+    sys.exit()
+    newBoard.randomize_walls()
+    print newBoard
+    print '*********'
+    newBoard.insert_row_right()
+    print newBoard
+
+
+
+
+'''
+#############################################################
+#########Methods cemetery####################################
+#############################################################
+
+ def set_initial_direction(self):
+        """
+        This method sets the cars direction
+        :return:
+        """
+        directions = self._tile.get_car_directions()
+        self.__CAR_INITIAL_DIRECTION = directions[directions.keys()[0]]
+
+ def set_movement_cell(self,val,locX,locY):
         """
         In case of changing the car's direction, this method change the tile value
         :param val: tile value representing the new direction
@@ -470,171 +687,7 @@ class board():
                 print 'Error - Could not place the car in location X:{0} Y:{1}.\nCar moved back to location X:{2} Y:{3}\n'.format(locX,locY-1,locX,locY)
                 return False
         return self.get_car_placement()
-    def expand_board(self,addX,addY,placementX,placementY):
-        pass
-    def process_new_data(self,data):
-        pass
-    def replace_two_tile(self,locX1,locX2,locY1,locY2,val1,val2):
-        """
-        This method is designed to replace two tiles with a value without having to take a risk,
-        one or more tile would be changed as a result of multi-tasking
-        note that this method does not check if the vales are legal
-        :param locX1:   first location
-        :param locX2:   second location
-        :param locY1:
-        :param locY2:
-        :param val1:    replace tile1_val to
-        :param val2:    replace tile2_val to
-        :return: True if successful, False otherwise
-        """
 
 
-        with self._lock:
-            return (self.set_cell(locX1,locY1,val1)) and  (self.set_cell(locX2,locY2,val2))
-    def randomize_walls(self,number=None):
-        """
-        This method creates random walls
-        :return: None
-        """
-        if number == None:
-            number = self._defaultX
-        board_size = self.get_board_size()
-        wall_val = self._tile.get_WallVal()
-        for x in range(number):
-            flag= False
-            while flag==False:
-                randX = random.randint(0,board_size['x']-1)
-                randY = random.randint(0,board_size['y']-1)
-                if self.__CAR_INITIAL_DIRECTION == None:
-                    self.set_initial_direction()
-                if self.get_cell_val(randX,randY) != self.__CAR_INITIAL_DIRECTION:
-                    flag = self.set_cell(randX,randY,wall_val)
-        return None
-    def insert_row_front(self,data = None):
-        """
-        This method adds a row of tiles at the upper bound of the board
-        :param data: contains pre-made data, if None the we will randomize one
-        :return: True if successful, False otherwise
-        """
-        if data == None:
-            data =[]
-            for i in range(len(self._instance[0])):
-                data.append(random.choice(self._tile.get_tile_mapping().values()))
-        else:
-            if len(data) != len(self._instance[0]):
-                return False
-        try:
-            self._instance.insert(0,data)
-        except:
-            return False
 
-        return True
-    def insert_row_right(self,data = None):
-        """
-        This method adds a column of tiles at the right bound of the board
-        :param data: contains pre-made data, if None the we will randomize one
-        :return: True if successful, False otherwise
-        """
-        if data == None:
-            data =[]
-            for i in range(len(self._instance)):
-                data.append(random.choice(self._tile.get_tile_mapping().values()))
-        else:
-            if len(data) != len(self._instance):
-                return False
-        try:
-            for index in range (len(self._instance)):
-                self._instance[index].append(data[index])
-        except:
-            return False
-
-        return True
-    def insert_row_back(self,data = None):
-        """
-        This method adds a row of tiles at the rear bound of the board
-        :param data: contains pre-made data, if None the we will randomize one
-        :return: True if successful, False otherwise
-        """
-        if data == None:
-            data =[]
-            for i in range(len(self._instance[0])):
-                data.append(random.choice(self._tile.get_tile_mapping().values()))
-        else:
-            if len(data) != len(self._instance[0]):
-                return False
-        try:
-            self._instance.append(data)
-        except:
-            return False
-
-        return True
-    def insert_row_right(self,data = None):
-        """
-        This method adds a column of tiles at the left bound of the board
-        :param data: contains pre-made data, if None the we will randomize one
-        :return: True if successful, False otherwise
-        """
-        if data == None:
-            data =[]
-            for i in range(len(self._instance)):
-                data.append(random.choice(self._tile.get_tile_mapping().values()))
-        else:
-            if len(data) != len(self._instance):
-                return False
-        try:
-            for index in range (len(self._instance)):
-                self._instance[index].insert(0,data[index])
-        except:
-            return False
-
-        return True
-    def insert_multiple_rows(self,data,car_facing):
-        """
-        This method allows adding several blocks of data, depending on the car facing
-        :param data:        contains pre_made data, should be list of lists [[],[]]
-        :param car_facing:  symbols where we need to add the data
-        :return: True upon success, False otherwise
-        """
-        pass
-    def get_obstacles_map(self):
-        raise self.impossible_action_exception('need to be implemented')
-    def get_nearest_obstacle(self):
-        raise self.impossible_action_exception('need to be implemented')
-    def get_obstacles_locations(self):
-        """
-        :return: an array depicting the coordinates where obstacles are
-        """
-        raise self.impossible_action_exception('need to be implemented')
-    def is_all_wall_ahead(self, direction):
-        raise self.impossible_action_exception('need to be implemented')
-
-    def get_obstacles_coordinates_list(self):
-        """
-        for each tile valued as wall, return its location
-        :return: list of Coordinates
-        """
-        wall_val = self._tile.get_WallVal()
-        indexX = 0
-        indexY = 0
-        obstacles_list = []
-        for indexY in range(0, len(self._instance)):
-            for indexX in range(0, len(self._instance[0])):
-                if self.get_cell_val(indexX, indexY) == wall_val:
-                    new_co = coordinate.coordinate(indexX, indexY)
-                    obstacles_list.append(new_co)
-        return obstacles_list
-    def get_carLocation(self):
-        pass
-if __name__ == '__main__':
-
-
-    newBoard = board(random_values=1)
-    print newBoard
-    for c in  newBoard.get_obstacles_coordinates_list():
-        print (c.get_x(),c.get_y())
-    sys.exit()
-    newBoard.randomize_walls()
-    print newBoard
-    print '*********'
-    newBoard.insert_row_right()
-    print newBoard
+'''

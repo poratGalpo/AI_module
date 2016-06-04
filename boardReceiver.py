@@ -2,6 +2,7 @@ import sys
 import random
 import tile
 import board
+import ast
 
 class boardReceiverInterface():
 
@@ -55,29 +56,76 @@ class boardReceiverInterface():
 
 class stub_boardReceiver(boardReceiverInterface):
 
+    fileIndexes = ['0','1','2','3','4']
     X_default_size = 10
     Y_default_size = 10
     _board = None
-
+    FILE_NAME = 'map'
+    _self_index = 0
     def __init__(self):
         """
 
         :rtype: stub_boardReceiver
         """
-        self._board = board.board(random_values=1)
+        first_map = self.extract_map_from_file(self.fileIndexes[self._self_index])
+        self._board = board.board(preMade_data=first_map)
+        self._self_index += 1
         return
 
+
+    def extract_map_from_file(self,index_num):
+        """
+        for
+        :param fileName:
+        :return:
+        """
+        current_fileName = self.FILE_NAME+index_num+'.txt'
+        print 'opening file name {0}'.format(current_fileName)
+        fileDes = open(current_fileName,'r')
+        rawData = fileDes.read()
+        fileDes.close()
+        try:
+            data = ast.literal_eval(rawData)
+        except:
+            print sys.exc_info()
+            return False
+        return data
+
     def receive_board(self):
-        print "Receiving board of size {0}X{1}\n(default size)".format(self.X_default_size, self.Y_default_size)
+        """
+        Receives board for the first time ( second if init counts)
+        and updates the board's var _instance var
+        :return: True upon success, False otherwise
+        """
+        self._self_index = (self._self_index +1) % (len(self.fileIndexes)-1)
+        #   Done on order to make sure that after initialization the self_index is still in range
+
+
+        map = self.extract_map_from_file(self.fileIndexes[self._self_index])
+        self._board.set_board(map)
+        self._self_index = (self._self_index +1) % (len(self.fileIndexes)-1)
+        print self._self_index
+        print '******************************************************************\n\n\n\n'
+        return  True
 
     def get_board(self):
         return self._board
 #        return self.init_board(xVal= self.X_default_size, yVal= self.Y_default_size)
 
-    def refresh_board(self,data):
-        self._board.set_board(data)
+    def refresh_board(self):
+        map = self.extract_map_from_file(self.fileIndexes[self._self_index])
+        self._board.set_board(map)
+        self._self_index = (self._self_index +1) % (len(self.fileIndexes))
+        print '******************************************************************\n\n\n\n'
 
 if __name__ == '__main__':
 
     receiver = stub_boardReceiver()
+    receiver.receive_board()
+
     print receiver.get_board()
+    receiver.refresh_board()
+    print receiver.get_board()
+    receiver.refresh_board()
+    print receiver.get_board()
+    receiver.refresh_board()

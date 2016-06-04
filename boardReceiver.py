@@ -46,6 +46,9 @@ class boardReceiverInterface():
     def convert_to_board_instance(self,data):
         raise self.BR_NotImplemented('convert to board instance')
 
+    def refresh_board(self):
+        raise self.BR_NotImplemented('refresh_board')
+
     def get_car_direction(self,data):
         raise self.BR_NotImplemented('convert to board instance')
 
@@ -70,6 +73,9 @@ class stub_boardReceiver(boardReceiverInterface):
     def get_board(self):
         return self._board
 #        return self.init_board(xVal= self.X_default_size, yVal= self.Y_default_size)
+
+    def refresh_board(self,data):
+        self._board.set_board(data)
 
 if __name__ == '__main__':
 

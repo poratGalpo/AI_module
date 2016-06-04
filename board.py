@@ -416,7 +416,6 @@ class board():
         distance = math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))
         rnd_distance = round(distance,3)
         return rnd_distance
-
     def get_nearest_tileVal(self,tileVal):
         """
         This method returns the coordinate of the closest tileVal according to the car's position
@@ -435,15 +434,30 @@ class board():
         boardY = boardSize['y']
         #   We need to find the maximum number of iterations allows
         iterationNumber = max(carX,(boardX-carX),carY,(boardY-carY))
-        #for iterationIndex in range(0,iterationNumber):
 
-        raise self.impossible_action_exception('need to be implemented')
+        for ind in range(1,iterationNumber):
+            if self.get_cell_val(carX,carY-ind) == tileVal:
+                return coordinate.coordinate(carX,carY-ind)
+            elif self.get_cell_val(carX+ind,carY-ind) == tileVal:
+                return coordinate.coordinate(carX+ind,carY-ind)
+            elif self.get_cell_val(carX+ind,carY) == tileVal:
+                return coordinate.coordinate(carX+ind,carY)
+            elif self.get_cell_val(carX+ind,carY+ind) == tileVal:
+                return coordinate.coordinate(carX+ind,carY+ind)
+            elif self.get_cell_val(carX,carY+ind) == tileVal:
+                return coordinate.coordinate(carX,carY+ind)
+            elif self.get_cell_val(carX-ind,carY+ind) == tileVal:
+                return coordinate.coordinate(carX-ind, carY)
+            elif self.get_cell_val(carX-ind, carY) == tileVal:
+                return coordinate.coordinate(carX-ind, carY)
+            elif self.get_cell_val(carX-ind, carY-ind) == tileVal:
+                return coordinate.coordinate(carX-ind, carY-ind)
+
+        return -1
     def get_obstacles_locations(self):
         """
         :return: an array depicting the coordinates where obstacles are
         """
-        raise self.impossible_action_exception('need to be implemented')
-    def is_all_wall_ahead(self, direction):
         raise self.impossible_action_exception('need to be implemented')
     def get_obstacles_coordinates_list(self):
         """
@@ -460,13 +474,34 @@ class board():
                     new_co = coordinate.coordinate(indexX, indexY)
                     obstacles_list.append(new_co)
         return obstacles_list
+    def is_all_wall_ahead(self, direction):
+        raise self.impossible_action_exception('need to be implemented')
+    def set_board(self,data_board):
+        """
+        This method uses a lock to replace the data resides in _instance
+        :param data_board: needs to be 2d array
+        :return: True upon success, False otherwise
+        """
+        try:
+        #   Checking if the input is a 2d array, in some old fashioned manner
+            data_board[0][0]
+        except:
+            return False
+        with self._lock:
+            try:
+                self._instance = data_board
+                return True
+            except:
+                return False
+        return False
 
 if __name__ == '__main__':
 
 
     newBoard = board(random_values=1)
     print newBoard
-    print newBoard.get_obstacles_map()
+    #print newBoard.get_nearest_tileVal(newBoard._tile.get_WallVal())
+    newBoard.set_board(([[2,3],[4,5]]))
     print newBoard
     sys.exit()
     for c in  newBoard.get_obstacles_coordinates_list():

@@ -75,12 +75,11 @@ class stub_boardReceiver(boardReceiverInterface):
 
     def extract_map_from_file(self,index_num):
         """
-        for
-        :param fileName:
-        :return:
+        for a given index, concatenates FILENAME+index+.txt and returns the data as evaluated by ast
+        :param fileName: string representation of the index
+        :return: data upon success, False otherwise
         """
         current_fileName = self.FILE_NAME+index_num+'.txt'
-        print 'opening file name {0}'.format(current_fileName)
         fileDes = open(current_fileName,'r')
         rawData = fileDes.read()
         fileDes.close()
@@ -97,14 +96,15 @@ class stub_boardReceiver(boardReceiverInterface):
         and updates the board's var _instance var
         :return: True upon success, False otherwise
         """
-        self._self_index = (self._self_index +1) % (len(self.fileIndexes)-1)
+        self._self_index = (self._self_index +1) % (len(self.fileIndexes))
         #   Done on order to make sure that after initialization the self_index is still in range
 
 
         map = self.extract_map_from_file(self.fileIndexes[self._self_index])
+        if map == False:
+            return False
         self._board.set_board(map)
-        self._self_index = (self._self_index +1) % (len(self.fileIndexes)-1)
-        print self._self_index
+        self._self_index = (self._self_index +1) % (len(self.fileIndexes))
         print '******************************************************************\n\n\n\n'
         return  True
 
@@ -113,10 +113,17 @@ class stub_boardReceiver(boardReceiverInterface):
 #        return self.init_board(xVal= self.X_default_size, yVal= self.Y_default_size)
 
     def refresh_board(self):
+        """
+        sets the board's var _instance var to be the next map
+        :return: True upon success, False otherwise
+        """
         map = self.extract_map_from_file(self.fileIndexes[self._self_index])
+        if map == False:
+            return False
         self._board.set_board(map)
         self._self_index = (self._self_index +1) % (len(self.fileIndexes))
         print '******************************************************************\n\n\n\n'
+        return True
 
 if __name__ == '__main__':
 

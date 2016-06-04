@@ -258,7 +258,7 @@ class board():
                  if they cannot be found
         """
 
-        return self.__carPlacement
+        #return self.__carPlacement
 
         #   previous implementation
         carVal = self._tile.get_CarVal()
@@ -284,6 +284,7 @@ class board():
         car_val = self._tile.get_CarVal()
         self.__carPlacement = {'x':locX,'y':locY,'val':car_val}
         return self.set_cell(locX,locY,car_val)
+
     def expand_board(self,addX,addY,placementX,placementY):
         pass
     def replace_two_tile(self,locX1,locX2,locY1,locY2,val1,val2):

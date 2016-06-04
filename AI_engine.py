@@ -105,7 +105,6 @@ class engine_v1(engine_interface):
 
     def calculate_optimal_coordinate(self):
         self._board = self.receiver.get_board()
-        print self._board
         bestResult = -1
         bestCoordinate = None
         car_location = self._board.get_car_placement()
@@ -125,4 +124,6 @@ class engine_v1(engine_interface):
 if __name__ == '__main__':
 
     engn = engine_v1()
+    print engn.calculate_optimal_coordinate()
+    engn.receiver.refresh_board()
     print engn.calculate_optimal_coordinate()

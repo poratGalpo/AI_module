@@ -62,6 +62,7 @@ class stub_boardReceiver(boardReceiverInterface):
     _board = None
     FILE_NAME = 'map'
     _self_index = 0
+    car_initial_location = {'x':-1, 'y':-1}
     def __init__(self):
         """
 
@@ -69,6 +70,12 @@ class stub_boardReceiver(boardReceiverInterface):
         """
         first_map = self.extract_map_from_file(self.fileIndexes[self._self_index])
         self._board = board.board(preMade_data=first_map)
+        try:
+            location = self._board.get_car_placement()
+        except:
+            print 'No car was found'
+        self.car_initial_location['x'] = location['x']
+        self.car_initial_location['y'] = location['y']
         self._self_index += 1
         return
 

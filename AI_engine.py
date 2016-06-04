@@ -4,7 +4,6 @@ import math
 from boardReceiver import stub_boardReceiver
 from coordinate import coordinate
 
-
 class engine_interface():
 
     def AIE_NotImplemented(self, message):
@@ -101,6 +100,18 @@ class engine_v1(engine_interface):
 #            raise self.AIE_NotImplemented('No assignment for value {0}'.format(value))
 #        else:
         return round(distance*new_assignment[value],3)
+
+
+    def get_initial_coordinate(self):
+        """
+        This method returns the initial coordinate
+        :return:  coordinate instance, with the actual values, or <0,0> if the initial values does not exist
+        """
+        initial_location = self.receiver.car_initial_location
+        if initial_location['x'] == -1 or initial_location['y'] == -1:
+            return coordinate(0,0)
+        else:
+            return coordinate(initial_location['x'], initial_location['y'])
 
 
     def calculate_optimal_coordinate(self):

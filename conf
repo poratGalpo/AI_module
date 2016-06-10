@@ -1,0 +1,11 @@
+{
+	"network":
+		{"ip"		:	" ",
+		"port":6451,
+		},
+	"general":
+		{
+			"name": "galpo",
+			"print_steps":True
+		}
+}

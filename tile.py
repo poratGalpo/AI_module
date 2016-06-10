@@ -17,6 +17,7 @@ class tile():
             'CAR':self.CAR,
             #'DIRECTIONS': self.get_directions_dict()
             }
+
     def set_tile(self,previous_mapping,current_mapping = None):
         """
         This method sets a new value to some tile, number should be larger than 0 and not set to any other variable
@@ -63,6 +64,7 @@ class tile():
         else:
             #   If the needed conditions are not true
             return False
+
     def isVal_available(self,value):
         """
         Checks if a value for mapping is taken
@@ -77,6 +79,7 @@ class tile():
         return istTaken
 
     #following methods designed to retrieve values of tile modes
+
     def isVal_legal(self,val):
         """
         For val argument, returns true if the val is being used by some mode
@@ -89,24 +92,34 @@ class tile():
                 return True
 
         return False
+
     def get_FreeVal(self):
         return self.__FREE
+
     def get_UnmappedVal(self):
         return self.UNMAPPED
+
     def get_WallVal(self):
         return self.WALL
+
     def get_FellowVal(self):
         return self.FELLOW
+
     def get_ErrorVal(self):
         return self.ERROR
+
     def get_UnreachableVal(self):
         return self.UNREACHABLE
+
     def get_car_directions(self):
         return self._directions
+
     def get_CarVal(self):
         return self.CAR
+
     def __str__(self):
         return str(self._defaultVal)
+
     def __init__(self):
         """
         Initializing tile instance with the default value
@@ -122,8 +135,20 @@ class tile():
         self.CAR         =  '9'
         self._defaultVal = self.UNMAPPED
         self.data = self._defaultVal
-        self._directions = {'1':'UP','2':'DOWN', '3':'RIGHT', '4':'LEFT'}
-
+        self._directions = {'SU':'A','RU':'B', 'RS':'C', 'RB':'D', 'SB':'E','LB':'F', 'LS':'G', 'LU':'H'}
+        """
+        #   abbreviation map:
+        {
+            SU  - straight upper
+            RU  - right upper
+            RS  - right straight
+            RB  - right bottom
+            SB  - straight bottom
+            LB  - left bottom
+            LS  - left straight
+            LU  - left upper
+        }
+        """
 
 
 

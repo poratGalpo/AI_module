@@ -1,8 +1,12 @@
 import sys
-from AI_engine import coordinate
+import AI_engine
+import coordinate
+
+
+
 class nav_interface():
     _navStack = None
-
+    _AI_engine = None
     def AIE_NotImplemented(self, message):
         if message is None:
             print "nav engine - method not implemented"
@@ -20,6 +24,7 @@ class nav_interface():
         :return: 1 upon success, 0 otherwise
         """
         self.AIE_NotImplemented('receiver')
+
     def print_stack(self):
         """
         This method prints the navigation stack content
@@ -33,13 +38,39 @@ class nav_interface():
 
 
 class stub_navEngine(nav_interface):
+    EXT_Err = 1
     _navStack = []
+    _AI_engine = None       #AI_engine.engine_v1()
+
+    def __init__(self,engine):
+        """
+        We need to ensure the engine being sent to the navigation component is the one that is
+        compatible to all methods define in engine_interface
+        :param engine: an instance of a class derived from engine_interface
+        :return:
+        """
+
+        if not issubclass(engine, AI_engine.engine_interface):
+            print 'navigation stack error - illegal AI_engine\n'
+            sys.exit(self.EXT_Err)
+        else:
+            self._AI_engine = engine
+        return
+
+    def __str__(self):
+        """
+        In case of printing the navigation stack,
+        prints out the entire list
+        :return: None
+        """
+        self.print_stack()
+        return None
 
     def receiver(self, coordinateInp):
         try:
             xLoc = coordinateInp.get_x()
             yLoc = coordinateInp.get_y()
-            self._navStack.append(coordinateInp)
+            self.push_navStack()
             print 'Got coordinate {0}\n'.format(coordinateInp)
         except:
             print sys.exc_info()
@@ -47,11 +78,46 @@ class stub_navEngine(nav_interface):
 
         return 1
 
+    def push_navStack(self,coo):
+        """
+        This method performs push to the navigation stack
+        :param coo: Coordinate instance
+        :return: True upon success, False otherwise
+        """
+        try:
+            self._navStack += [coo]
+        except:
+            return False
+        return True
+
+    def get_stack(self):
+        """
+        This method returns the navigation stack
+        :return: list
+        """
+        try:
+            return self._navStack
+        except:
+            return []
+
+    def terminate_process(self):
+        """
+        This method is used for terminating the scanning process.
+        Will Define the nav stack to be the last coordinate and shuts down  the AI engine
+        :return: True upon success, False otherwise
+        """
+        try:
+            print "Navigating to the last coordinate"
+            self._navStack = self._AI_engine.get_initial_coordinate()
+        except:
+            return False
+        return True
+
+
     def print_stack(self):
         for coordInstance in self._navStack:
             print coordInstance
             print  '\n'
-
 if __name__ == '__main__':
     nav_stack = stub_navEngine()
     nav_stack.print_stack()

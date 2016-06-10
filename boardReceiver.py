@@ -3,6 +3,7 @@ import random
 import tile
 import board
 import ast
+import coordinate
 
 class boardReceiverInterface():
 
@@ -60,6 +61,7 @@ class stub_boardReceiver(boardReceiverInterface):
     X_default_size = 10
     Y_default_size = 10
     _board = None
+    _direction = None
     FILE_NAME = 'map'
     _self_index = 0
     car_initial_location = {'x':-1, 'y':-1}
@@ -76,9 +78,30 @@ class stub_boardReceiver(boardReceiverInterface):
             print 'No car was found'
         self.car_initial_location['x'] = location['x']
         self.car_initial_location['y'] = location['y']
+        self._direction = self.randomize_direction()
         self._self_index += 1
         return
 
+    def come_home(self):
+        """
+        This method returns the initial coordinate as received by the initial map
+        Important assumption - the car's initial coordinate remains the same through the whole scanning process
+        :return: coordinate instance upon success, False otherwise
+        """
+        print "Make sure of the assumption!!\n"
+        try:
+            return coordinate(self.car_initial_location['x'], self.car_initial_location['y'])
+        except:
+            return False
+
+    def randomize_direction(self):
+        """
+        This method replaces real-time odom direction
+        :return: one of the existing direction, exits upon error
+        """
+        available_directions = self._tile.get_car_directions().values()
+        random_direction = random.choice(available_directions)
+        return random_direction
 
     def extract_map_from_file(self,index_num):
         """
@@ -112,12 +135,12 @@ class stub_boardReceiver(boardReceiverInterface):
             return False
         self._board.set_board(map)
         self._self_index = (self._self_index +1) % (len(self.fileIndexes))
+        self._direction = self.randomize_direction()
         print '******************************************************************\n\n\n\n'
         return  True
 
     def get_board(self):
-        return self._board
-#        return self.init_board(xVal= self.X_default_size, yVal= self.Y_default_size)
+        return self._board,self._direction
 
     def refresh_board(self):
         """
@@ -129,6 +152,7 @@ class stub_boardReceiver(boardReceiverInterface):
             return False
         self._board.set_board(map)
         self._self_index = (self._self_index +1) % (len(self.fileIndexes))
+        self._direction = self.randomize_direction()
         print '******************************************************************\n\n\n\n'
         return True
 

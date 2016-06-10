@@ -4,6 +4,7 @@ import tile
 import board
 import ast
 import coordinate
+import odom_subs_node
 
 class boardReceiverInterface():
 
@@ -155,6 +156,8 @@ class stub_boardReceiver(boardReceiverInterface):
         self._direction = self.randomize_direction()
         print '******************************************************************\n\n\n\n'
         return True
+
+
 
 if __name__ == '__main__':
 

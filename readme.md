@@ -1,3 +1,5 @@
+### NOTE: This library is still under construction and testing
+***
 ## Mapping buildings with autonomous remote control cars - Description
 
 The project main goal is to map buildings with the help of autonomous remote control cars, equipped with high resolution camera and ROS based computer.
@@ -10,33 +12,48 @@ This package deals with the AI module of the project, which upon receiving a 2D 
 
 This package is a part of software project directed by Ben Gurion University. The project combines both Software Engineering department and Electrical Engineering department.
 
-As a part of many task forces daily routine, knowing the area surface can save lives. 
-### Take the summary already written previously
+Knowing the surface structure is crucial and critical routine of many professionals such as firefighters and security forces, receiving information about the operating   surface in the most efficient and accurate manner is often a matter of life or death.
+ 
+The goal of our project is to map structures using vehicles and creating a computer model that describes, as accurate as possible ,the operating surface. When being activated the vehicle, which is equipped with various cameras and sensors, will be located at the entrance of the structure and will navigating autonomously in order to create the most accurate model of the structure. By doing so, this model can help saving human life when entering into dangerous areas.
 ***
-
-
-## Code Example
-
-Show what the library does as concisely as possible, developers should be able to figure out **how** your project solves their problem by looking at the code example. Make sure the API you are showing off is obvious, and that your code is short and concise.
-
-
 
 ## Installation
 
-Provide code examples and explanations of how to get the project.
+Deployment is very simple, just extract the compressed file into the destinated computer.
+car's computer should have all of the files except for `client_app.py` under the same folder, where the `client_app.py` file should be located at the client-side computer.
 
-## API Reference
+## Running the program
 
-Depending on the size of the project, if it is small and simple enough the reference docs can be added to the README. For medium size to larger projects it is important to at least provide a link to where the API reference docs live.
+As mentioned before, this system is devided into car-side and a client side.
+all configuration that can be altered are inside the file named `conf` and can be edited in form of a Json (later will be translated to python dictionary using `ast` library.
+The configuration file is being used by both car-side and client-side programs
+
+in order to run the car-side program:
+```
+python driver.py
+```
+
+In order to run the client-side program
+```
+python client_app.py
+```
 
 ## Tests
 
-Describe and show how to run the tests with code examples.
+######   Still need to be written
+
+
+
+## Benchmarks
+
+Currently there are 3 main computing engines that compute the most optimal coordinate to visit by different factors.
+After a full intgartion with the car, this part will be filled with efficiency of each of the computing engines.
+######   Will be written after integration
 
 ## Contributors
 
-Let people know how they can dive into the project, include important links to things like issue trackers, irc, twitter accounts if applicable.
+This whole project is written by the following members:
+* Gal Porat
+* Osher Damari
+* Tomer Belzer
 
-## License
-
-A short snippet describing the license (MIT, Apache, etc.)

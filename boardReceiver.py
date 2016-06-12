@@ -4,7 +4,7 @@ import tile
 import board
 import ast
 import coordinate
-import odom_subs_node
+#import odom_subs_node
 
 class boardReceiverInterface():
 

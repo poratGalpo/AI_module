@@ -29,6 +29,7 @@ class driver():
         if not self.load_configurations(self.CONF_FILE):
             raise self.driver_exception('Could not create configuration file\n')
         if not self.open_socket():
+
             raise self.driver_exception("Could not open a socket")
         self.driver_control()
 
@@ -67,7 +68,7 @@ class driver():
         sys.exit(self.EXT_ERR)
 
     def start_process(self):
-        self._AI_engine = AI_engine.stub_engine()
+        self._AI_engine = AI_engine.engine_v1()
         self._nav_engine = nav.stub_navEngine(self._AI_engine)
         print('Process has started successfully')
 
@@ -75,6 +76,7 @@ class driver():
         hadStarted = False
         self.s.listen(5)
         c, addr = self.s.accept()
+        data = ''
         while data != 'stop':
             if data == 'start':
                 if hadStarted:
@@ -83,12 +85,12 @@ class driver():
                     hadStarted = True
                     self.start_process()
             elif data == 'pause':
-                print 'Scanning process had stopped\nType "resume" to continue canning\n '
+                print 'Scanning process had paused\nType "resume" to continue scanning\n '
                 while data != 'resume':
-                    print 'Resuming scanning process'
+                    print 'waiting for resuming scanning process'
                     time.sleep(2)
                     data = c.recv(1024)
-
+                print '\n\nResuming for scanning process'
             data = c.recv(1024)
 
         if not self.terminate_process():
@@ -135,6 +137,7 @@ class driver():
             self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.s.bind((ip,port))
         except:
+            print sys.exc_info()[1]
             return False
 
         return True

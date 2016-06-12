@@ -417,6 +417,7 @@ class board():
         distance = math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))
         rnd_distance = round(distance,3)
         return rnd_distance
+
     def get_nearest_tileVal(self,tileVal):
         """
         This method returns the coordinate of the closest tileVal according to the car's position

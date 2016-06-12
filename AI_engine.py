@@ -70,18 +70,275 @@ class stub_engine(engine_interface):
         self.push_to_stack(target_co)
         return target_co
 
-
-
-class engine_v1(engine_interface):
-
+class engine_v0(engine_interface):
+    """
+    This engine is a short-sight, greedy algorithm which
+    selects the most optimal point as the nearest coordinate related to the the car's placement
+    and is free/unmapped
+    """
     DEFAULT_CAR_POSITION = coordinate(4,4)
-    receiver = stub_boardReceiver()
-    _board, _direction = receiver.get_board()
+    receiver = None
+    _board, = None
+    _direction = None
+    _pivot = 1
 
     try:
         car_position = _board.getPosition()
     except:
         car_position = DEFAULT_CAR_POSITION
+
+    def __init__(self):
+
+        self.receiver = stub_boardReceiver()
+        self._board, self._direction = self.receiver.get_board()
+
+
+    def calc_prob_factor(self, distance, value ):
+        pass
+
+    def calculate_optimal_coordinate(self):
+        """
+        This method gives a some reward to each tile according to it's location
+        and the car's direction
+        :param coorX: tile coordination x value
+        :param coorY: tile coordination y value
+        :return: int
+        """
+        optimal_coordinate = None
+        sub_optimal_coordinate = None
+        car_location = self._board.get_car_placement()
+        carX = car_location['x']
+        carY = car_location['y']
+        if carX == -1 or carY == -1:
+            print 'AI_engine - engine V0: Cannot find car location <{0},{1}>'.format(carX, carY)
+            return 0
+        """
+        #   abbreviation map:
+        {
+            SU  - straight upper
+            RU  - right upper
+            RS  - right straight
+            RB  - right bottom
+            SB  - straight bottom
+            LB  - left bottom
+            LS  - left straight
+            LU  - left upper
+        }
+        """
+        return coordinate(0,0)
+
+
+    def get_initial_coordinate(self):
+        """
+        This method returns the initial coordinate
+        :return:  coordinate instance, with the actual values, or <0,0> if the initial values does not exist
+        """
+        initial_location = self.receiver.car_initial_location
+        if initial_location['x'] == -1 or initial_location['y'] == -1:
+            return coordinate(0,0)
+        else:
+            return coordinate(initial_location['x'], initial_location['y'])
+
+    def calculate_optimal_coordinate(self):
+        """
+        This method scans the board object and by factors of distance and direction calculates
+        the most optimal coordinate to be scanned afterwards
+        Note: each optimal coordinate selected will be stored in a coordinate list
+                but can be selected again as long as the tile does not change its value
+        :return: Coordinate instance upon success, False otherwise
+        """
+        self._board, self._direction = self.receiver.get_board()
+        bestResult = -1
+        bestCoordinate = None
+        car_location = self._board.get_car_placement()
+        carX = car_location['x']
+        carY = car_location['y']
+
+        for indexY in range(0, len(self._board._instance)):
+            for indexX in range(0, len(self._board._instance[0])):
+                currVal = self._board._instance[indexY][indexX]
+                calc_result = self.calc_tile_simple_imp(self.calculate_distance(carX, indexX, carY, indexY), currVal)
+                self._board._instance[indexY][indexX] = calc_result
+                if calc_result > bestResult:
+                    bestResult = calc_result
+                    bestCoordinate = coordinate(indexX, indexY)
+        return bestCoordinate
+
+
+    def last_coordinate(self):
+        #   Not sure if needed
+        self.AIE_NotImplemented("last_coordinate")
+
+    def terminate_process(self):
+        #   Not sure if needed
+        self.AIE_NotImplemented("terminate_process")
+
+    def start_process(self):
+        self.AIE_NotImplemented("start_process")
+
+    def pause_process(self):
+        self.AIE_NotImplemented("pause_process")
+
+class engine_v1(engine_interface):
+
+    DEFAULT_CAR_POSITION = coordinate(4,4)
+    receiver = None
+    _board, = None
+    _direction = None
+
+    try:
+        car_position = _board.getPosition()
+    except:
+        car_position = DEFAULT_CAR_POSITION
+
+    def __init__(self):
+
+        self.receiver = stub_boardReceiver()
+        self._board, self._direction = self.receiver.get_board()
+
+
+    def calculate_distance(self,x1,x2,y1,y2):
+        distance = math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))
+        rnd_distance = round(distance,3)
+        return rnd_distance
+
+    def calc_prob_factor(self, distance, value ):
+        pass
+
+    def calculate_direction_factor(self,coorX,coorY):
+        """
+        This method gives a some reward to each tile according to it's location
+        and the car's direction
+        :param coorX: tile coordination x value
+        :param coorY: tile coordination y value
+        :return: int
+        """
+        HIGH_PROB   = 1.3
+        MED_PROB    = 1.1
+        REG_PROB    = 1
+        LOW_PROB    = 0
+        car_location = self._board.get_car_placement()
+        carX = car_location['x']
+        carY = car_location['y']
+        if carX == -1 or carY == -1:
+            print 'AI_engine: Cannot find car location <{0},{1}>'.format(carX, carY)
+            return 0
+        """
+        #   abbreviation map:
+        {
+            SU  - straight upper
+            RU  - right upper
+            RS  - right straight
+            RB  - right bottom
+            SB  - straight bottom
+            LB  - left bottom
+            LS  - left straight
+            LU  - left upper
+        }
+        """
+        available_directions = self._board._tile.get_car_directions()
+        if available_directions['SU'] == self._direction:
+            if coorX <= carX+(carY -coorY)and coorX >= carX-(carY -coorY) and carY >= coorY:
+                return HIGH_PROB*(abs(carX-coorX))
+        elif available_directions['RU'] == self._direction:
+            if coorY <= carY and coorX >= carX :
+                return HIGH_PROB*(abs(carX-coorX)+abs(carY-coorY))
+        elif available_directions['RS'] == self._direction:
+            if coorY <= carY+(carX -coorX )and coorY >= carY-(carX -coorX ) and carX >= coorX:
+                return HIGH_PROB*(abs(carY-coorY))
+        elif available_directions['RB'] == self._direction:
+            if coorY >= carY and coorX >= carX:
+                return HIGH_PROB*(abs(carX-coorX)+abs(carY-coorY))
+        elif available_directions['SB'] == self._direction:
+            if coorX <= carX+(coorY- carY)and coorX >= carX-(coorY- carY)and coorY >= carY :
+                return HIGH_PROB*(abs(carX-coorX))
+        elif available_directions['LB'] == self._direction:
+            if coorY >= carY and coorX <= carX:
+                return HIGH_PROB*(abs(carX-coorX)+abs(carY-coorY))
+        elif available_directions['LS'] == self._direction:
+            if coorY <= carY+(carX -coorX )and coorY >= carY-(carX -coorX ) and carX >= coorX:
+                return HIGH_PROB*(abs(carY-coorY))
+        elif available_directions['LU'] == self._direction:
+            if coorY <= carY and coorX <= carX :
+                return HIGH_PROB*(abs(carX-coorX)+abs(carY-coorY))
+        pass
+
+    def calc_tile_simple_imp(self,distance,value):
+        tile_instance = self.receiver.get_board()[0].get_tile()
+        new_assignment= {tile_instance.get_FreeVal():0.5, tile_instance.get_UnmappedVal():1, tile_instance.get_WallVal():0}
+        if value not in new_assignment:
+            new_assignment[value] = 0.01
+#            raise self.AIE_NotImplemented('No assignment for value {0}'.format(value))
+#        else:
+        return round(distance*new_assignment[value],3)
+
+    def get_initial_coordinate(self):
+        """
+        This method returns the initial coordinate
+        :return:  coordinate instance, with the actual values, or <0,0> if the initial values does not exist
+        """
+        initial_location = self.receiver.car_initial_location
+        if initial_location['x'] == -1 or initial_location['y'] == -1:
+            return coordinate(0,0)
+        else:
+            return coordinate(initial_location['x'], initial_location['y'])
+
+    def calculate_optimal_coordinate(self):
+        """
+        This method scans the board object and by factors of distance and direction calculates
+        the most optimal coordinate to be scanned afterwards
+        Note: each optimal coordinate selected will be stored in a coordinate list
+                but can be selected again as long as the tile does not change its value
+        :return: Coordinate instance upon success, False otherwise
+        """
+        self._board, self._direction = self.receiver.get_board()
+        bestResult = -1
+        bestCoordinate = None
+        car_location = self._board.get_car_placement()
+        carX = car_location['x']
+        carY = car_location['y']
+        for indexY in range(0, len(self._board._instance)):
+            for indexX in range(0, len(self._board._instance[0])):
+                currVal = self._board._instance[indexY][indexX]
+                calc_result = self.calc_tile_simple_imp(self.calculate_distance(carX, indexX, carY, indexY), currVal)
+                self._board._instance[indexY][indexX] = calc_result
+                if calc_result > bestResult:
+                    bestResult = calc_result
+                    bestCoordinate = coordinate(indexX, indexY)
+        return bestCoordinate
+
+
+    def last_coordinate(self):
+        #   Not sure if needed
+        self.AIE_NotImplemented("last_coordinate")
+
+    def terminate_process(self):
+        #   Not sure if needed
+        self.AIE_NotImplemented("terminate_process")
+
+    def start_process(self):
+        self.AIE_NotImplemented("start_process")
+
+    def pause_process(self):
+        self.AIE_NotImplemented("pause_process")
+
+class engine_v2(engine_interface):
+
+    DEFAULT_CAR_POSITION = coordinate(4,4)
+    receiver = None
+    _board, = None
+    _direction = None
+
+    try:
+        car_position = _board.getPosition()
+    except:
+        car_position = DEFAULT_CAR_POSITION
+
+    def __init__(self):
+
+        self.receiver = stub_boardReceiver()
+        self._board, self._direction = self.receiver.get_board()
+
 
     def calculate_distance(self,x1,x2,y1,y2):
         distance = math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))

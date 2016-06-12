@@ -46,16 +46,17 @@ class stub_navEngine(nav_interface):
         """
         We need to ensure the engine being sent to the navigation component is the one that is
         compatible to all methods define in engine_interface
+        :rtype: None
         :param engine: an instance of a class derived from engine_interface
         :return:
         """
 
-        if not issubclass(engine, AI_engine.engine_interface):
+        if not issubclass(engine.__class__, AI_engine.engine_interface):
             print 'navigation stack error - illegal AI_engine\n'
             sys.exit(self.EXT_Err)
         else:
             self._AI_engine = engine
-        return
+
 
     def __str__(self):
         """
@@ -113,11 +114,34 @@ class stub_navEngine(nav_interface):
             return False
         return True
 
-
     def print_stack(self):
         for coordInstance in self._navStack:
             print coordInstance
             print  '\n'
+
+    def clean_atts(self):
+        """
+        This method is designed for a 'single-point' cleanup
+        after the scanning process has been terminated
+        Most of it's actions is deleting instance
+        :return: True upon successful cleanup, False otherwise
+        """
+        flag = True
+        try:
+            del self._AI_engine
+        except:
+            print "Could not delete AI engine"
+            flag = False
+
+        try:
+            del self._navStack
+        except:
+            print "Could not delete navigation stack"
+            flag = False
+
+        return flag
+
+
 if __name__ == '__main__':
     nav_stack = stub_navEngine()
     nav_stack.print_stack()

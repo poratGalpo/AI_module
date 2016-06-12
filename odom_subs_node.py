@@ -24,11 +24,12 @@ class map_subscriber():
     def __init__(self):
         print "Creating new subscriber\n"
         self._map_index = 0
+        self.listener()
 
     def __str__(self):
         print "Current map:\n{0}".format(self._current_map)
 
-    def callback(self,odom, occu_grid):
+    def refresh_board(self,odom, occu_grid, get_board = False):
         #print (odom.header)
         #print ("*********************************")
         #print (occu_grid.header)
@@ -54,6 +55,9 @@ class map_subscriber():
         self._current_map = map
         self._map_index += 1
 
+        if get_board is True:
+            return self._current_map,self.current_index
+
     def listener(self):
 
         # In ROS, nodes are uniquely named. If two nodes with the same
@@ -66,7 +70,7 @@ class map_subscriber():
         odom_sub = message_filters.Subscriber('rtabmap/odom', Odometry)
 
         ts = message_filters.TimeSynchronizer([odom_sub, occu_grid_sub], 10)
-        ts.registerCallback(self.callback)
+        ts.registerCallback(self.refresh_board)
         rospy.spin()
 
     def get_initial_coordinate(self):
@@ -81,7 +85,7 @@ class map_subscriber():
         except:
             return coordinate.coordinate(0,0)
 
-    def get_map(self):
+    def get_board(self):
         """
         getter method to access the map data
         :return: (map_instance, index) upon success, False otherwise

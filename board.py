@@ -124,7 +124,6 @@ class board():
             if locX-1 < 0:
                 return True
             return (self.get_cell_val(locX-1,locY) != free_val) and (self.get_cell_val(locX-1,locY) != unmapped_val)
-        pass
     def get_board_size(self):
         """
         This method returns a dictionary with the size of the board
@@ -169,10 +168,12 @@ class board():
         return result
     def get_tile(self):
         return self._tile
-    def get_xy_map(self,sizeX,sizeY):
+    def get_xy_map(self,sizeX,sizeY,premade_location = None):
         """
-        This method is responsible for for cropping a map sized X*Y around the car
+        This method is responsible for for cropping a map sized X*Y around the car or around some default location
         In case there is not enough space around some side, it will fill it with unreachable placement
+        :param premade_location: allows you to get the map around some default location rather than the car's location
+                                it is a dictionary of the form {'x':int,'y':int}
         :param sizeX: number of cells on the right/left of the car
         :param sizeY: number of cells on the front/back of the car
         :return: a two dimensional array where the car is in the middle of it, raise exception in case of an error
@@ -185,8 +186,16 @@ class board():
         xBoard_size = len(self._instance[0])
         yBoard_size = len(self._instance)
         car_place_dict = self.get_car_placement()
-        carX_placement = car_place_dict['x']
-        carY_placement = car_place_dict['y']
+        if premade_location is None:
+            carX_placement = car_place_dict['x']
+            carY_placement = car_place_dict['y']
+        else:
+            try:
+                carX_placement = premade_location['x']
+                carY_placement = premade_location['y']
+            except:
+                carX_placement = car_place_dict['x']
+                carY_placement = car_place_dict['y']
         if carX_placement == -1 or carY_placement == -1:
             raise self.impossible_action_exception("illegal size arguments")
 
@@ -284,7 +293,6 @@ class board():
         car_val = self._tile.get_CarVal()
         self.__carPlacement = {'x':locX,'y':locY,'val':car_val}
         return self.set_cell(locX,locY,car_val)
-
     def expand_board(self,addX,addY,placementX,placementY):
         pass
     def replace_two_tile(self,locX1,locX2,locY1,locY2,val1,val2):
@@ -417,7 +425,6 @@ class board():
         distance = math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))
         rnd_distance = round(distance,3)
         return rnd_distance
-
     def get_nearest_tileVal(self,tileVal):
         """
         This method returns the coordinate of the closest tileVal according to the car's position
@@ -496,6 +503,8 @@ class board():
             except:
                 return False
         return False
+
+
 
 if __name__ == '__main__':
 

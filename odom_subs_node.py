@@ -123,7 +123,6 @@ class map_subscriber():
             return 7
         if -67.5<= yaw < -22.5:
             return 8
-        print 'kaki kaki'
         return 1
 
 

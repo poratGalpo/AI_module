@@ -4,8 +4,8 @@ import tile
 import board
 import ast
 import coordinate
-#import odom_subs_node
-
+#from odom_subs_node import *
+from odom_subs_node import map_subscriber
 class boardReceiverInterface():
 
     _tile = tile.tile()
@@ -163,11 +163,49 @@ class stub_boardReceiver(boardReceiverInterface):
         self._direction = self.randomize_direction()
         return True
 
+class boardReceiverImpl(boardReceiverInterface):
+    _map_sub = None
+
+    def __init__(self):
+        """
+
+        :rtype: boardReceiverImpl
+        """
+        self._map_sub = map_subscriber()
+
+    def receive_board(self):
+        """
+        Receives board for the first time ( second if init counts)
+        and updates the board's var _instance var
+        :return: True upon success, False otherwise
+        """
+        self.refresh_board()
+        return True
+
+    def get_board(self, refreshBoard = False):
+        """
+        This method returns the board to the caller,
+        :param refreshBoard: boolean indicating if it is necessary to refresh before the return
+        :return: board instance and direction
+        """
+        current_board = board.board(preMade_data=self._map_sub._board)
+        return current_board, self._map_sub._direction
+
+    def refresh_board(self):
+        """
+        sets the board's var _instance var to be the next map
+        :return: True upon success, False otherwise
+        """
+        self._map_sub._board = None
+        while self._map_sub._board == None:
+            self._map_sub.listener()
+        current_board = board.board(preMade_data=self._map_sub._board)
+        return current_board, self._map_sub._direction
 
 
 if __name__ == '__main__':
 
-    receiver = stub_boardReceiver()
+    receiver = boardReceiverImpl()
     receiver.receive_board()
 
     print receiver.get_board()

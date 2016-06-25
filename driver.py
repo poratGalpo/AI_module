@@ -4,7 +4,10 @@ import socket
 import ast
 import nav_engine as nav
 import time
+import tile
 from datetime import datetime
+from implementation import *
+from path_to_words import *
 
 class driver():
     """
@@ -143,7 +146,7 @@ class driver():
         :return: True upon success, False otherwise
         """
         try:
-            self._AI_engine = AI_engine.engine_v2()
+            self._AI_engine = AI_engine.engine_v1()
             self._nav_engine = nav.stub_navEngine(self._AI_engine)
             self.write_to_log('Process has started successfully')
         except:
@@ -187,8 +190,21 @@ class driver():
                 self.write_to_log("Mapping is done")
                 break
             if self.driver_conf['general']['print_steps']:
-                path = self._nav_engine.push_navStack(curr_optimal)     #   Assuming this operation returns path list
-                self.send_to_client(path)
+                bor = self._AI_engine._board.get_board_size()
+                height = bor["x"]
+                width = bor["y"]
+                diagram = GridWithWeights(height, width)
+                for i in range(width):
+                    for j in range(height):
+                        if (self._AI_engine._board._instance[i][j]==tile.tile().get_WallVal()):
+                            diagram.walls.append((i,j))
+                car_loc = self._AI_engine._board.get_car_placement()                
+                came_from, cost_so_far = a_star_search(diagram,(car_loc["x"], car_loc["y"]), (curr_optimal.get_x(),curr_optimal.get_y()))
+                path1 = calcPath(cost_so_far, (curr_optimal.get_x(),curr_optimal.get_y()), (car_loc["x"], car_loc["y"]), [])
+                draw_grid(diagram, width=1, number=cost_so_far, start=(car_loc["x"], car_loc["y"]), goal=(curr_optimal.get_x(),curr_optimal.get_y()),path=path1)
+                path(path1,self._AI_engine._direction)
+                #path = self._nav_engine.push_navStack(curr_optimal)     #   Assuming this operation returns path list
+                #self.send_to_client(path)
             data = c.recv(1024)
             while data != 'ok' and data != 'pali':
                 if data == 'pause':
@@ -249,6 +265,7 @@ class driver():
         This method is responsible for opening a socket with a port number specified in the conf doc
         :return: True upon success, False otherwise
         """
+        print ("open socket")
         ip = self.driver_conf['network']['ip']
         port = self.driver_conf['network']['port']
         try:

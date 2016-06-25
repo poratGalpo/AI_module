@@ -1,7 +1,7 @@
 import sys
 import random
 import math
-from boardReceiver import stub_boardReceiver
+from boardReceiver import *
 from coordinate import coordinate
 
 class engine_interface():
@@ -85,7 +85,7 @@ class engine_v1(engine_interface):
 
     def __init__(self):
 
-        self.receiver = stub_boardReceiver()
+        self.receiver = boardReceiverImpl()
         self._board, self._direction = self.receiver.get_board(refreshBoard=False)
 
 
@@ -239,7 +239,7 @@ class engine_v2(engine_interface):
 
     def __init__(self):
 
-        self.receiver = stub_boardReceiver()
+        self.receiver = boardReceiverImpl()
         self._board, self._direction = self.receiver.get_board(refreshBoard=False)
 
 

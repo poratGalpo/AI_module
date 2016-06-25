@@ -1,9 +1,12 @@
+#!/usr/bin/env python
+
 import socket
 import sys
 import ast
 import time
+import rospy
 
-CONF_FILE = 'conf'
+CONF_FILE = '/home/osher/catkin_ws/src/odor/scripts/conf'
 SLEEP_ON_CONNECTION_REFUSED = 5
 WAITING_ON_SOCKET = 2
 EXT_OK = 1
@@ -26,7 +29,6 @@ def load_configurations(fileName):
 
 
 def main_call():
-
     conf = load_configurations(CONF_FILE)
     if conf == False:
         return

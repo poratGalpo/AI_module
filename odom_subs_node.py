@@ -28,7 +28,7 @@ class map_subscriber():
     _listener = None
 
     def __init__(self):
-        print "Creating new subscriber mudafacka\n"
+        print "Creating new subscriber\n"
         self._map_index = 0
         self.listener()
 

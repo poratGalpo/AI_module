@@ -7,6 +7,7 @@ import coordinate
 from copy import deepcopy
 class board():
 
+    EXT_ERROR = -1
     _lock = threading.RLock()
     _defaultX = 10
     _defaultY = 10
@@ -92,8 +93,31 @@ class board():
         prints error message and exits
         """
         print ('board exception',message)
-        sys.exit(-1)
-    def isObstacle(self,which):
+        sys.exit(self.EXT_ERROR)
+    def failure_exception(self,message):
+        """
+        prints error message and exits
+        """
+        print ('Failure :',message)
+        sys.exit(self.EXT_ERROR)
+    def isObstacle(self,x_loc,y_loc):
+        """
+        This method returns boolean values if the tile in coordinate <x,y> is an obstacle
+        Note: every tile that is not free or unmapped will be considered an obstacle
+        :param x_loc: legal coordinate
+        :param y_loc: legal coordinate
+        :return: False if tile is unmapped or free, True if not, -1 in case of an exception
+        """
+        try:
+            unmapped_val = self._tile.get_UnmappedVal()
+            free_val = self._tile.get_FreeVal()
+            current_val = self.get_cell_val(x_loc, y_loc)
+            if current_val == -1 or (current_val != unmapped_val and current_val !=free_val):
+                return True
+            return False
+        except:
+            return -1
+    def isObstacle_adjacent(self,which):
         """
         This method gets a direction (1-4 clockwise) and returns if the cell in that direction is an obstacle, i.e
         can't go through this place
@@ -147,7 +171,7 @@ class board():
             return -1
 
         if ((locationX < 0) or (locationX >= xLen)) or ((locationY < 0) or (locationY >= yLen)) :
-            raise self.impossible_action_exception("Error while trying to get cell")
+            raise self.failure_exception("Error while trying to get cell")
 
         else:
             return self._instance[locationY][locationX]
@@ -233,6 +257,7 @@ class board():
         tempBoard = board()
         tempBoard._instance = result
         return tempBoard
+    
     def init_board(self, xVal, yVal,random_values=0):
         if random_values == 1:
             mapping_vals = self._tile.get_tile_mapping().values()
@@ -355,10 +380,10 @@ class board():
         """
         if data == None:
             data =[]
-            for i in range(len(self._instance)):
+            for i in range(len(self._instance[0])):
                 data.append(random.choice(self._tile.get_tile_mapping().values()))
         else:
-            if len(data) != len(self._instance):
+            if len(data) != len(self._instance[0]):
                 return False
         try:
             for index in range (len(self._instance)):
@@ -386,7 +411,7 @@ class board():
             return False
 
         return True
-    def insert_row_right(self,data = None):
+    def insert_row_left(self,data = None):
         """
         This method adds a column of tiles at the left bound of the board
         :param data: contains pre-made data, if None the we will randomize one
@@ -394,10 +419,10 @@ class board():
         """
         if data == None:
             data =[]
-            for i in range(len(self._instance)):
+            for i in range(len(self._instance[0])):
                 data.append(random.choice(self._tile.get_tile_mapping().values()))
         else:
-            if len(data) != len(self._instance):
+            if len(data) != len(self._instance[0]):
                 return False
         try:
             for index in range (len(self._instance)):
@@ -503,7 +528,49 @@ class board():
             except:
                 return False
         return False
+    def is_mapping_done(self):
+        """
+        This method is designed to decide weather the mapping is done.
+        It's doing so by scanning the borders of the board trying to find a tile valued as unmapped
+        or as free, by finding so it can say that the mapping is NOT done
+        :return: True upon board surrounded by obstacles, False otherwise
+        :raises: Failure exception
+        """
+        flag = True
+        current_board = self.get_board_size()
+        boardSize_x = current_board['x']
+        boardSize_y = current_board['y']
+        if boardSize_x == -1 or boardSize_y == -1:
+            self.failure_exception('Illegal board size: {0}*{1}'.format(boardSize_x, boardSize_y))
+        for row in range(1, boardSize_y-1):
+            try:
+                #       Note galpo: Every row might not be at the same length !
+                row_first = self.isObstacle(0,row)
+                row_last = self.isObstacle(boardSize_x-1, row)
+                if  row_last == -1:
+                    self.failure_exception('Error while trying to figure if tile <{0},{1}> is an obstacle'.format(row, row_last))
+                elif row_first == -1 :
+                    self.failure_exception('Error while trying to figure if tile <{0},{1}> is an obstacle'.format(row, row_first))
+                elif not row_first  or not row_last :
+                    flag = False
+                    break
+            except:
+                self.failure_exception(sys.exc_info()[1])
+        if not flag:
+            return flag
+        else:
+            for index in range(0,boardSize_x):
+                first_row_instance = self.isObstacle(index,0)
+                last_row_instance = self.isObstacle(index,boardSize_x-1)
+                if first_row_instance == -1 :
+                    self.failure_exception('Error while trying to figure if tile <{0},{1}> is an obstacle'.format(index, 0))
+                elif last_row_instance == -1 :
+                    self.failure_exception('Error while trying to figure if tile <{0},{1}> is an obstacle'.format(index, boardSize_x-1))
+                elif not first_row_instance or not last_row_instance:
+                    flag = False
+                    return flag
 
+        return flag
 
 
 if __name__ == '__main__':

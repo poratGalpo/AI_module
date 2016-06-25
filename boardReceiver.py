@@ -31,7 +31,7 @@ class boardReceiverInterface():
         """
         raise self.BR_NotImplemented('receive_board')
 
-    def get_board(self):
+    def get_board(self, refreshBoard = True):
         """
         :return: returns available map
         """
@@ -137,10 +137,17 @@ class stub_boardReceiver(boardReceiverInterface):
         self._board.set_board(map)
         self._self_index = (self._self_index +1) % (len(self.fileIndexes))
         self._direction = self.randomize_direction()
-        print '******************************************************************\n\n\n\n'
+        print 'board received \n\n'
         return  True
 
-    def get_board(self):
+    def get_board(self, refreshBoard = False):
+        """
+        This method returns the board to the caller,
+        :param refreshBoard: boolean indicating if it is necessary to refresh before the return
+        :return: board instance and direction
+        """
+        if refreshBoard:
+            self.refresh_board()
         return self._board,self._direction
 
     def refresh_board(self):
@@ -154,7 +161,6 @@ class stub_boardReceiver(boardReceiverInterface):
         self._board.set_board(map)
         self._self_index = (self._self_index +1) % (len(self.fileIndexes))
         self._direction = self.randomize_direction()
-        print '******************************************************************\n\n\n\n'
         return True
 
 

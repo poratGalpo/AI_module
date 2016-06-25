@@ -21,13 +21,14 @@ class engine_interface():
         """
         raise self.AIE_NotImplemented('get_next_coordinate')
 
-    def calculate_optimal_coordinate(self):
+    def calculate_optimal_coordinate(self, refreshBoard = True):
         """
         This method uses a calculation library which regardless of the previous coordinates calculates the
         by portability the optimal coordinate for scanning
         :return: coordinate instance
         """
         raise self.AIE_NotImplemented('calculate_optimal_coordinate')
+
     def is_mapping_done(self):
         """
         checks whether the map is surrounded with obstacles
@@ -55,7 +56,7 @@ class stub_engine(engine_interface):
 
     def get_next_coordinate(self):
 
-        board, direction = self._boardReceiver.get_board()
+        board, direction = self._boardReceiver.get_board(refreshBoard=False)
         sizeX = len(board[0])
         sizeY = len(board)
 
@@ -74,7 +75,7 @@ class engine_v1(engine_interface):
 
     DEFAULT_CAR_POSITION = coordinate(4,4)
     receiver = None
-    _board, = None
+    _board = None
     _direction = None
 
     try:
@@ -85,7 +86,7 @@ class engine_v1(engine_interface):
     def __init__(self):
 
         self.receiver = stub_boardReceiver()
-        self._board, self._direction = self.receiver.get_board()
+        self._board, self._direction = self.receiver.get_board(refreshBoard=False)
 
 
     def calculate_distance(self,x1,x2,y1,y2):
@@ -155,8 +156,9 @@ class engine_v1(engine_interface):
         pass
 
     def calc_tile_simple_imp(self,distance,value):
-        tile_instance = self.receiver.get_board()[0].get_tile()
-        new_assignment= {tile_instance.get_FreeVal():0.5, tile_instance.get_UnmappedVal():1, tile_instance.get_WallVal():0}
+
+        tile_instance = self._board.get_tile()      #Bug fix   -  self.receiver.get_board()[0].get_tile()  was removed
+        new_assignment= {tile_instance.get_FreeVal():0.001, tile_instance.get_UnmappedVal():1, tile_instance.get_WallVal():0}
         if value not in new_assignment:
             new_assignment[value] = 0.01
 #            raise self.AIE_NotImplemented('No assignment for value {0}'.format(value))
@@ -174,7 +176,7 @@ class engine_v1(engine_interface):
         else:
             return coordinate(initial_location['x'], initial_location['y'])
 
-    def calculate_optimal_coordinate(self):
+    def calculate_optimal_coordinate(self, refreshBoard = True):
         """
         This method scans the board object and by factors of distance and direction calculates
         the most optimal coordinate to be scanned afterwards
@@ -182,22 +184,32 @@ class engine_v1(engine_interface):
                 but can be selected again as long as the tile does not change its value
         :return: Coordinate instance upon success, False otherwise
         """
-        self._board, self._direction = self.receiver.get_board()
+        self._board, self._direction = self.receiver.get_board(refreshBoard = refreshBoard)
+        if self._board.is_mapping_done():
+            return coordinate(-100,-100)
         bestResult = -1
         bestCoordinate = None
         car_location = self._board.get_car_placement()
         carX = car_location['x']
         carY = car_location['y']
-        for indexY in range(0, len(self._board._instance)):
-            for indexX in range(0, len(self._board._instance[0])):
-                currVal = self._board._instance[indexY][indexX]
+        board_size = self._board.get_board_size()
+        if board_size['x'] == -1 or board_size['y'] == -1:
+            print 'Error in board size'
+            sys.exit(-1)
+        for indexY in range(0, board_size['y']):
+            for indexX in range(0, board_size['x']):
+                try:
+                    currVal = self._board.get_cell_val(indexX,indexY)
+                except:
+                    print indexY,indexX
+
+
                 calc_result = self.calc_tile_simple_imp(self.calculate_distance(carX, indexX, carY, indexY), currVal)
-                self._board._instance[indexY][indexX] = calc_result
+                #self._board._instance[indexY][indexX] = calc_result
                 if calc_result > bestResult:
                     bestResult = calc_result
                     bestCoordinate = coordinate(indexX, indexY)
         return bestCoordinate
-
 
     def last_coordinate(self):
         #   Not sure if needed
@@ -217,7 +229,7 @@ class engine_v2(engine_interface):
 
     DEFAULT_CAR_POSITION = coordinate(4,4)
     receiver = None
-    _board, = None
+    _board = None
     _direction = None
 
     try:
@@ -228,7 +240,7 @@ class engine_v2(engine_interface):
     def __init__(self):
 
         self.receiver = stub_boardReceiver()
-        self._board, self._direction = self.receiver.get_board()
+        self._board, self._direction = self.receiver.get_board(refreshBoard=False)
 
 
     def calculate_distance(self,x1,x2,y1,y2):
@@ -254,16 +266,21 @@ class engine_v2(engine_interface):
         x_factor = factor[0]
         y_factor = factor[1]
         location_dictionary = {'x':x_loc, 'y':y_loc}
-        reduced_map = self._board.get_xy_map(x_factor, y_factor, premade_location=location_dictionary)
+        cropped_board = self._board.get_xy_map(x_factor, y_factor, premade_location=location_dictionary)
+        reduced_map = cropped_board._instance
+        cropped_size = cropped_board.get_board_size()
+        if cropped_size['x'] == -1 or cropped_size['y'] == -1:
+            print 'Error calculating reduced map'
+            return neighbor_map['obstacle']
 
-        for y in reduced_map:
-            for x in reduced_map[y]:
+        for y in range(0,cropped_size['y']):
+            for x in range(0,cropped_size['x']):
                 try:
                     neighbor_counter += neighbor_map[reduced_map[y][x]]
                 except:
                     neighbor_counter += obstacle_rating
 
-        return obstacle_rating
+        return neighbor_counter
 
     def calculate_direction_factor(self, coorX, coorY):
         """
@@ -335,26 +352,33 @@ class engine_v2(engine_interface):
         else:
             return coordinate(initial_location['x'], initial_location['y'])
 
-    def calculate_optimal_coordinate(self):
+    def calculate_optimal_coordinate(self, refreshBoard = True):
         """
         This method scans the board object and by factors of distance and direction calculates
         the most optimal coordinate to be scanned afterwards
         Note: each optimal coordinate selected will be stored in a coordinate list
                 but can be selected again as long as the tile does not change its value
-        :return: Coordinate instance upon success, False otherwise
+        :return: Coordinate instance upon success, if there are no unmapped tiles left
+                the coordinate will be <-1,-1>, False otherwise
         """
-        self._board, self._direction = self.receiver.get_board()
+        self._board, self._direction = self.receiver.get_board(refreshBoard = refreshBoard)
+        if self._board.is_mapping_done():
+            return coordinate(-100,-100)
         bestResult = -1
-        bestCoordinate = None
-        car_location = self._board.get_car_placement()
-        carX = car_location['x']
-        carY = car_location['y']
+        bestCoordinate = coordinate(-1,-1)
+        #car_location = self._board.get_car_placement()
+        #carX = car_location['x']
+        #carY = car_location['y']
         free_val = self._board._tile.get_FreeVal()
         unmapped_val = self._board._tile.get_UnmappedVal()
-        for indexY in range(0, len(self._board._instance)):
-            for indexX in range(0, len(self._board._instance[0])):
-                currVal = self._board._instance[indexY][indexX]
-                if currVal != free_val or currVal != unmapped_val:
+        board_size = self._board.get_board_size()
+        if board_size['x'] == -1 or board_size['y'] == -1:
+            print 'Error in board size'
+            sys.exit(-1)
+        for indexY in range(0, board_size['y']):
+            for indexX in range(0, board_size['x']):
+                currVal = self._board.get_cell_val(indexX,indexY)
+                if currVal != free_val and currVal != unmapped_val:
                     continue
                 direction_grade = self.calculate_direction_factor(indexX, indexY)
                 neighbors_grade = self.calc_neighbors_factor(indexX, indexY, (1, 1))

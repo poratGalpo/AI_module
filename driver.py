@@ -4,7 +4,7 @@ import socket
 import ast
 import nav_engine as nav
 import time
-
+from datetime import datetime
 
 class driver():
     """
@@ -23,15 +23,85 @@ class driver():
     _nav_engine = None
     data = ''
     driver_conf = None
-
-
+    fileDes = None
+    timer = 0
+    last_timing = None
     def __init__(self):
+
         if not self.load_configurations(self.CONF_FILE):
             raise self.driver_exception('Could not create configuration file\n')
         if not self.open_socket():
 
             raise self.driver_exception("Could not open a socket")
+
+        self.handle_log_descriptor(operation='open',fileName=self.driver_conf['general']['log_file'],reWrite= True)
         self.driver_control()
+
+
+    def timer_handler(self,operation='start'):
+        """
+        timer method handles timing and sums it in the timer variable
+        :param operation: str. indicating whether to start/stop/pause/resume
+        :return: upon stop, returns the time in timer
+        """
+        if operation == 'start':
+            self.last_timing = time.time()
+            self.timer = 0
+        elif operation == 'pause':
+            current_time = time.time()
+            self.timer += (current_time-self.last_timing)
+            self.last_timing = current_time
+        elif operation == 'resume':
+            self.last_timing = time.time()
+        elif operation == 'stop':
+            current_time = time.time()
+            self.timer += (current_time-self.last_timing)
+            temp_result = self.timer
+            self.last_timing = time.time()
+            self.timer = 0
+            return temp_result
+
+    def send_to_client(self,message):
+        print message
+
+    def handle_log_descriptor(self,operation='close',fileName='default_log',reWrite=False):
+        """
+        This method opens a file descriptor for listing all the logs
+        :param operation: str. depicting the operation of close/open the file
+        :param fileName: log file name
+        :param reWrite: states whether rewriting the log is needed
+        :return: None
+        """
+        DEFAULT_LOG_FILE= 'default_log'
+        if operation == 'close':
+            try:
+                self.fileDes.close()
+            except:
+                print 'Could not close log descriptor'
+        elif operation == 'open':
+            try:
+                if reWrite:
+                    self.fileDes = open(fileName,'w')
+                else:
+                    self.fileDes = open(fileName,'a')
+            except:
+                print 'Illegal log file name, taking the default location {0}'.format(DEFAULT_LOG_FILE)
+                try:
+                    self.fileDes = open(DEFAULT_LOG_FILE,'w')
+                except:
+                    print 'Could not open default log file, printing to the screen'
+        return
+
+    def write_to_log(self,message):
+        timestamp = datetime.utcnow()
+        text = '{0}\n\t{1}\n\n'.format(str(timestamp),message)
+        if self.fileDes is None:
+            print text
+        else:
+            try:
+                self.fileDes.write(text)
+            except:
+                print text
 
     def load_configurations(self,fileName):
         """
@@ -68,36 +138,84 @@ class driver():
         sys.exit(self.EXT_ERR)
 
     def start_process(self):
-        self._AI_engine = AI_engine.engine_v1()
-        self._nav_engine = nav.stub_navEngine(self._AI_engine)
-        print('Process has started successfully')
+        """
+        This method initializes main components of the system
+        :return: True upon success, False otherwise
+        """
+        try:
+            self._AI_engine = AI_engine.engine_v2()
+            self._nav_engine = nav.stub_navEngine(self._AI_engine)
+            self.write_to_log('Process has started successfully')
+        except:
+            print sys.exc_info()[1]
+            return False
+        return True
 
     def driver_control(self):
-        hadStarted = False
+        """
+        This the main routine of the driver part,
+        It's mainly waiting to the user's command whether to start,pause,stop
+        Once process has started, its continuously picking the optimal coordinate, presents it to the user,
+        waiting for the user to send 'ok' then picking another tile until the process has been completed/stopped
+        Note: There is an option of printing the map at the user's console, it is defined in the conf file
+        :return: None
+        """
+
+        start_time = time.time()
         self.s.listen(5)
         c, addr = self.s.accept()
-        data = ''
-        while data != 'stop':
-            if data == 'start':
-                if hadStarted:
-                    print 'Process had already started'
-                else:
-                    hadStarted = True
-                    self.start_process()
-            elif data == 'pause':
-                print 'Scanning process had paused\nType "resume" to continue scanning\n '
-                while data != 'resume':
-                    print 'waiting for resuming scanning process'
-                    time.sleep(2)
-                    data = c.recv(1024)
-                print '\n\nResuming for scanning process'
+        data = c.recv(1024)
+        print data
+        while data != 'start':
+            self.send_to_client("Illegal command, please type 'start' to start mapping")
             data = c.recv(1024)
+        self.timer_handler('start')
+        self.write_to_log('Mapping process had started')
+        if not self.start_process():
+            self.write_to_log('Initializing process has failed, closing program')
+            sys.exit(self.EXT_ERR)
+
+        # Now starting to generate new optimal coordinates
+        while data != 'stop':
+            if self.driver_conf['general']['print_board']:
+                current_board = str(self._AI_engine._board)
+                self.send_to_client(current_board)
+            curr_optimal = self._AI_engine.calculate_optimal_coordinate(refreshBoard=True)
+            # Sending the coordinate to the client
+            self.send_to_client(str(curr_optimal))
+            if curr_optimal.get_x() == -100 and curr_optimal.get_y() == -100:
+                self.write_to_log("Mapping is done")
+                break
+            if self.driver_conf['general']['print_steps']:
+                path = self._nav_engine.push_navStack(curr_optimal)     #   Assuming this operation returns path list
+                self.send_to_client(path)
+            data = c.recv(1024)
+            while data != 'ok' and data != 'pali':
+                if data == 'pause':
+                    self.timer_handler('pause')
+                    self.write_to_log('Mapping process had paused')
+                    print 'Mapping process had paused\nType "resume" to continue scanning\n '
+                    while data != 'resume':
+                        print 'waiting for resuming scanning process'
+                        time.sleep(2)
+                        data = c.recv(1024)
+                    self.timer_handler('resume')
+                    print '\n\nResuming for scanning process'
+                    self.write_to_log('Resuming for scanning process')
+                elif data == 'stop':
+                    # If the user wishes to stop in the middle of the mapping
+                    break
+                data = c.recv(1024)
 
         if not self.terminate_process():
             print 'Could not terminate properly:\n{0}\n'.format(sys.exc_info()[1])
             sys.exit(self.EXT_ERR)
 
-        print "Process terminated successfully! \n"
+        total_time = self.timer_handler('stop')
+        message = 'Process took {0} seconds'.format(str(total_time))
+        self.send_to_client(message)
+        self.write_to_log("Process terminated successfully! \n")
+        self.handle_log_descriptor(operation='close')
         sys.exit(self.EXT_OK)
 
     def terminate_process(self):
@@ -124,7 +242,7 @@ class driver():
                 print instance
             except:
                 continue
-            raise self.no_implementation("print_steps")
+        return None
 
     def open_socket(self):
         """
@@ -139,7 +257,8 @@ class driver():
         except:
             print sys.exc_info()[1]
             return False
-
+        #self.s.send('kaka')
+        #sys.exit()
         return True
 
 

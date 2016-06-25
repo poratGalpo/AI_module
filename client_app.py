@@ -5,6 +5,8 @@ import time
 
 CONF_FILE = 'conf'
 SLEEP_ON_CONNECTION_REFUSED = 5
+WAITING_ON_SOCKET = 2
+EXT_OK = 1
 
 def load_configurations(fileName):
         """
@@ -35,6 +37,7 @@ def main_call():
 
     while not flag:
         try:
+            time.sleep(WAITING_ON_SOCKET)
             s.connect((host, port))
             flag = True
         except socket.error as e:
@@ -42,18 +45,20 @@ def main_call():
             time.sleep(SLEEP_ON_CONNECTION_REFUSED)
             continue
 
+        print 'Connection has been established successfully\n\n'
         input = raw_input()
 
-        while True:
+        while input!= 'stop':
 
             try:
                 s.send(input)
                 input = raw_input()
             except:
                 break
-
-        s.close
-
+        s.send(input)
+        print "Closing program, thank you"
+        s.close()
+        sys.exit(EXT_OK)
 
 if __name__ == '__main__':
     main_call()

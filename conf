@@ -6,6 +6,8 @@
 	"general":
 		{
 			"name": "galpo",
-			"print_steps":True
+			"print_steps":True,
+			"print_board":False,
+			"log_file":"LOG_FILE"
 		}
 }

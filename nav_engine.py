@@ -109,7 +109,7 @@ class stub_navEngine(nav_interface):
         """
         try:
             print "Navigating to the last coordinate"
-            self._navStack = self._AI_engine.get_initial_coordinate()
+            self._navStack = [self._AI_engine.get_initial_coordinate()]
         except:
             return False
         return True

@@ -238,7 +238,12 @@ class driver():
                     # If the user wishes to stop in the middle of the mapping
                     break
                 data = c.recv(1024)
-
+            if data == 'pali' and self._AI_engine._board.is_mapping_done():
+                new_msg = "Mapping is done !"
+                self.send_to_client(new_msg)
+                self.write_to_log(new_msg)
+                data = 'stop'
+                
         if not self.terminate_process():
             print 'Could not terminate properly:\n{0}\n'.format(sys.exc_info()[1])
             sys.exit(self.EXT_ERR)

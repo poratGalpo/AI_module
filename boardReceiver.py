@@ -4,7 +4,7 @@ import tile
 import board
 import ast
 import coordinate
-#from odom_subs_node import *
+from odom_subs_node import *
 #from odom_subs_node import map_subscriber
 class boardReceiverInterface():
 
@@ -188,6 +188,8 @@ class boardReceiverImpl(boardReceiverInterface):
         :param refreshBoard: boolean indicating if it is necessary to refresh before the return
         :return: board instance and direction
         """
+        if refreshBoard is True:
+            self.refresh_board()
         current_board = board.board(preMade_data=self._map_sub._board)
         return current_board, self._map_sub._direction
 

@@ -174,7 +174,7 @@ class astar_navEngine(nav_interface):
         if getGrid:
             mapped_grid = get_grid(diagram, width=1, number=cost_so_far, start=(car_loc["x"], car_loc["y"]),
                       goal=(goal.get_x(), goal.get_y()), path=path1)
-        final_path = get_path(path1, direction)
+        final_path = path(path1, direction)
         return mapped_grid,final_path
 
     def __str__(self):

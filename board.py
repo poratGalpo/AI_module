@@ -5,6 +5,7 @@ import threading
 import random
 import coordinate
 from copy import deepcopy
+from implementation import *
 class board():
 
     EXT_ERROR = -1
@@ -528,13 +529,49 @@ class board():
             except:
                 return False
         return False
+
+    def is_dest_unreacable(self, dest, cost_so_far):
+        for i in range(-1,2):
+            for j in range(-1,2):
+                    if ((dest[0]+i,dest[1]+j) in cost_so_far):
+                        return False
+        return True  
+
     def is_mapping_done(self):
         """
         This method is designed to decide weather the mapping is done.
-        It's doing so by scanning the borders of the board trying to find a tile valued as unmapped
-        or as free, by finding so it can say that the mapping is NOT done
+        if all 4 corners are unreachable the mapping is probably done.
         :return: True upon board surrounded by obstacles, False otherwise
         :raises: Failure exception
+        """
+        car_loc = self.get_car_placement()
+        bor = self.get_board_size()
+        height = bor["x"]
+        width = bor["y"]
+        diagram = GridWithWeights(height, width)
+        for i in range(width):
+            for j in range(height):
+                if (self._instance[i][j] == self.get_tile().get_WallVal()):
+                    diagram.walls.append((i, j))
+        
+        came_from, cost_so_far = a_star_search(diagram, (car_loc["x"], car_loc["y"]),
+                                               (bor["x"]-1, bor["y"]-1))
+        if self.is_dest_unreacable((bor["x"]-1, bor["y"]-1), cost_so_far):
+            came_from, cost_so_far = a_star_search(diagram, (car_loc["x"], car_loc["y"]),
+                                               (bor["x"]-1, 0))
+            if self.is_dest_unreacable((bor["x"]-1, 0), cost_so_far):
+                came_from, cost_so_far = a_star_search(diagram, (car_loc["x"], car_loc["y"]),
+                                               (0, bor["y"]-1))
+                if self.is_dest_unreacable((0, bor["y"]-1), cost_so_far):
+                    came_from, cost_so_far = a_star_search(diagram, (car_loc["x"], car_loc["y"]),
+                                               (0, 0))
+                    if self.is_dest_unreacable((0, 0), cost_so_far):
+                        print ("Done mapping!")
+                        return True
+        print ("Keep mapping!")
+        return False
+
+
         """
         flag = True
         current_board = self.get_board_size()
@@ -571,6 +608,7 @@ class board():
                     return flag
 
         return flag
+        """
 
 
 if __name__ == '__main__':

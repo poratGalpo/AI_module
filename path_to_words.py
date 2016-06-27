@@ -50,7 +50,7 @@ def get_direction(curr_coor, next_coor):
       return 6
 
 def print_rotation(robot_direction,yaw):
-  rotate = yaw - robot_direction #5
+  rotate = yaw - robot_direction
   direction = ""
   degree = 0
   if rotate >= 4 or (rotate < 0 and rotate >= -3):

@@ -54,7 +54,7 @@ class map_subscriber():
         map[grid_y][grid_x] = self._tileVal_car
 
         try:
-            (trans,rot) = self.listener.lookupTransform('/map', '/camera_link', rospy.Time(0))
+            (trans,rot) = self._listener.lookupTransform('/map', '/camera_link', rospy.Time(0))
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             print sys.exc_info()
             sys.exit()
@@ -80,7 +80,7 @@ class map_subscriber():
 
         ts = message_filters.TimeSynchronizer([odom_sub, occu_grid_sub], 10)
         ts.registerCallback(self.refresh_board)
-        self.listener = tf.TransformListener()
+        self._listener = tf.TransformListener()
         time.sleep(5)
         #rospy.spin()
 

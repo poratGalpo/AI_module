@@ -2,6 +2,7 @@
 	"network":
 		{"ip"		:	"",
 		"port":6451,
+		"recv_port":6452,
 		},
 	"general":
 		{

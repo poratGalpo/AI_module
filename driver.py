@@ -8,38 +8,13 @@ import tile
 from datetime import datetime
 
 
-class driver():
-    """
-    This class represents the driver instance,
-    it will
-    """
-
-    ################################
-    #### Variables #################
-    ################################
-    EXT_ERR = 1
-    EXT_OK = 0
-    CONF_FILE = 'conf'
-    driver_name = ''
-    _AI_engine = None
-    s = None
-    _nav_engine = None
-    data = ''
-    driver_conf = None
-    fileDes = None
-    timer = 0
+class timer():
+    counter = None
     last_timing = None
+
     def __init__(self):
-
-        if not self.load_configurations(self.CONF_FILE):
-            raise self.driver_exception('Could not create configuration file\n')
-        if not self.open_socket():
-
-            raise self.driver_exception("Could not open a socket")
-        self.driver_name = self.driver_conf['general']['name']
-        self.handle_log_descriptor(operation='open',fileName=self.driver_conf['general']['log_file'],reWrite= True)
-        self.driver_control()
-
+        self.timer = 0
+        self.last_timing = 0
 
     def timer_handler(self,operation='start'):
         """
@@ -63,6 +38,44 @@ class driver():
             self.last_timing = time.time()
             self.timer = 0
             return temp_result
+
+    def get_timing(self):
+        return self.timer_handler()
+
+class driver():
+    """
+    This class represents the driver instance,
+    it will
+    """
+
+    ################################
+    #### Variables #################
+    ################################
+    EXT_ERR = 1
+    EXT_OK = 0
+    CONF_FILE = 'conf'
+    driver_name = ''
+    _AI_engine = None
+    s = None
+    _nav_engine = None
+    data = ''
+    driver_conf = None
+    fileDes = None
+    timer = timer()
+    calculation_timer = timer()
+    last_timing = None
+
+    def __init__(self):
+
+        if not self.load_configurations(self.CONF_FILE):
+            raise self.driver_exception('Could not create configuration file\n')
+        if not self.open_socket():
+
+            raise self.driver_exception("Could not open a socket")
+        self.driver_name = self.driver_conf['general']['name']
+        self.handle_log_descriptor(operation='open',fileName=self.driver_conf['general']['log_file'],reWrite= True)
+        self.driver_control()
+
 
     def send_to_client(self,message):
         print message
@@ -172,18 +185,22 @@ class driver():
         while data != 'start':
             self.send_to_client("Illegal command, please type 'start' to start mapping")
             data = c.recv(1024)
-        self.timer_handler('start')
+        self.timer.timer_handler('start')
         self.write_to_log('Mapping process had started')
         if not self.start_process():
             self.write_to_log('Initializing process has failed, closing program')
             sys.exit(self.EXT_ERR)
 
+        self.calculation_timer.timer_handler('start')
+        self.calculation_timer.timer_handler('pause')
         # Now starting to generate new optimal coordinates
         while data != 'stop' and data != 'home':
             if self.driver_conf['general']['print_board']:
                 current_board = str(self._AI_engine._board)
                 self.send_to_client(current_board)
+            self.calculation_timer.timer_handler('resume')
             curr_optimal = self._AI_engine.calculate_optimal_coordinate(refreshBoard=True)
+            self.calculation_timer.timer_handler('pause')
             # Sending the coordinate to the client
             self.send_to_client(str(curr_optimal))
             if curr_optimal.get_x() == -100 and curr_optimal.get_y() == -100:
@@ -194,7 +211,9 @@ class driver():
                     print_navBoard = self.driver_conf['general']['print_navigation_board']
                 except:
                     print_navBoard = False
+                self.calculation_timer.timer_handler('resume')
                 mapped_grid, final_path = self._nav_engine.navigate(self._AI_engine._board, curr_optimal,self._AI_engine._direction)
+                self.calculation_timer.timer_handler('pause')
                 if final_path is False:
                     self.send_to_client('Coordinate unreachable')
                 elif print_navBoard:
@@ -205,14 +224,14 @@ class driver():
             data = c.recv(1024)
             while data != 'ok' and data != 'pali':
                 if data == 'pause':
-                    self.timer_handler('pause')
+                    self.timer.timer_handler('pause')
                     self.write_to_log('Mapping process had paused')
                     print 'Mapping process had paused\nType "resume" to continue scanning\n '
                     while data != 'resume':
                         print 'waiting for resuming scanning process'
                         time.sleep(2)
                         data = c.recv(1024)
-                    self.timer_handler('resume')
+                    self.timer.timer_handler('resume')
                     print '\n\nResuming for scanning process'
                     self.write_to_log('Resuming for scanning process')
                 elif data == 'stop':
@@ -224,8 +243,9 @@ class driver():
             print 'Could not terminate properly:\n{0}\n'.format(sys.exc_info()[1])
             sys.exit(self.EXT_ERR)
 
-        total_time = self.timer_handler('stop')
-        message = 'Process took {0} seconds'.format(str(total_time))
+        total_time = self.timer.timer_handler('stop')
+        calculation_time = self.calculation_timer.timer_handler('stop')
+        message = 'Whole process took {0} seconds, calculation lasted {1} seconds'.format(str(total_time),str(calculation_time))
         self.send_to_client(message)
         self.write_to_log("Process terminated successfully! \n")
         self.handle_log_descriptor(operation='close')

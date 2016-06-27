@@ -78,7 +78,27 @@ def path(path, yaw):
       distance = distance + 5
       i = i+1
     print("walk forward for " +str(distance)+" cm")
-    
+
+
+def get_path(path, yaw):
+    """
+    This method prints the path to the user
+    :param path:
+    :param yaw:
+    :return: str describing the path to the destination goal
+    """
+    text = ''
+    i = 0
+    while i != len(path) - 1:
+        print_rotation(get_direction(path[i], path[i + 1]), yaw)
+        yaw = get_direction(path[i], path[i + 1])
+        i = i + 1
+        distance = 5
+        while i != len(path) - 1 and get_direction(path[i], path[i + 1]) == yaw:
+            distance = distance + 5
+            i = i + 1
+        text += "walk forward for {0} cm\n".format(str(distance))
+    return text
   
 #if __name__ == '__main__':
     #path([(5,5),(4,5),(3,6),(3,7),(4,8),(5,8),(6,7),(6,6),(5,5)], 1)

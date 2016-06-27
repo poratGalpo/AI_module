@@ -7,7 +7,8 @@
 		{
 			"name": "galpo",
 			"print_steps":True,
-			"print_board":False,
+			"print_board":True,
+			"print_navigation_board":False,
 			"log_file":"LOG_FILE"
 		}
 }

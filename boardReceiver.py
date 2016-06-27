@@ -5,7 +5,7 @@ import board
 import ast
 import coordinate
 #from odom_subs_node import *
-from odom_subs_node import map_subscriber
+#from odom_subs_node import map_subscriber
 class boardReceiverInterface():
 
     _tile = tile.tile()

@@ -4,9 +4,12 @@ class coordinate():
     _y = None
 
     def __init__(self, x, y):
-        self._x = x
-        self._y = y
-
+        if isinstance(x,int) and isinstance(y,int):
+            self._x = x
+            self._y = y
+        else:
+            self._x = 0
+            self._y = 0
     def get_x(self):
         return self._x
 

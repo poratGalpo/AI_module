@@ -6,8 +6,7 @@ import nav_engine as nav
 import time
 import tile
 from datetime import datetime
-from implementation import *
-from path_to_words import *
+
 
 class driver():
     """
@@ -21,6 +20,7 @@ class driver():
     EXT_ERR = 1
     EXT_OK = 0
     CONF_FILE = 'conf'
+    driver_name = ''
     _AI_engine = None
     s = None
     _nav_engine = None
@@ -36,7 +36,7 @@ class driver():
         if not self.open_socket():
 
             raise self.driver_exception("Could not open a socket")
-
+        self.driver_name = self.driver_conf['general']['name']
         self.handle_log_descriptor(operation='open',fileName=self.driver_conf['general']['log_file'],reWrite= True)
         self.driver_control()
 
@@ -147,7 +147,7 @@ class driver():
         """
         try:
             self._AI_engine = AI_engine.engine_v1()
-            self._nav_engine = nav.stub_navEngine(self._AI_engine)
+            self._nav_engine = nav.astar_navEngine()
             self.write_to_log('Process has started successfully')
         except:
             print sys.exc_info()[1]
@@ -179,7 +179,7 @@ class driver():
             sys.exit(self.EXT_ERR)
 
         # Now starting to generate new optimal coordinates
-        while data != 'stop':
+        while data != 'stop' and data != 'home':
             if self.driver_conf['general']['print_board']:
                 current_board = str(self._AI_engine._board)
                 self.send_to_client(current_board)
@@ -190,21 +190,18 @@ class driver():
                 self.write_to_log("Mapping is done")
                 break
             if self.driver_conf['general']['print_steps']:
-                bor = self._AI_engine._board.get_board_size()
-                height = bor["x"]
-                width = bor["y"]
-                diagram = GridWithWeights(height, width)
-                for i in range(width):
-                    for j in range(height):
-                        if (self._AI_engine._board._instance[i][j]==tile.tile().get_WallVal()):
-                            diagram.walls.append((i,j))
-                car_loc = self._AI_engine._board.get_car_placement()                
-                came_from, cost_so_far = a_star_search(diagram,(car_loc["x"], car_loc["y"]), (curr_optimal.get_x(),curr_optimal.get_y()))
-                path1 = calcPath(cost_so_far, (curr_optimal.get_x(),curr_optimal.get_y()), (car_loc["x"], car_loc["y"]), [])
-                draw_grid(diagram, width=1, number=cost_so_far, start=(car_loc["x"], car_loc["y"]), goal=(curr_optimal.get_x(),curr_optimal.get_y()),path=path1)
-                path(path1,self._AI_engine._direction)
-                #path = self._nav_engine.push_navStack(curr_optimal)     #   Assuming this operation returns path list
-                #self.send_to_client(path)
+                try:
+                    print_navBoard = self.driver_conf['general']['print_navigation_board']
+                except:
+                    print_navBoard = False
+                mapped_grid, final_path = self._nav_engine.navigate(self._AI_engine._board, curr_optimal,self._AI_engine._direction)
+                if final_path is False:
+                    self.send_to_client('Coordinate unreachable')
+                elif print_navBoard:
+                    self.send_to_client(mapped_grid)
+                else:
+                    self.send_to_client(final_path)
+
             data = c.recv(1024)
             while data != 'ok' and data != 'pali':
                 if data == 'pause':

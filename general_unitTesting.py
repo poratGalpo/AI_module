@@ -1,6 +1,6 @@
 from tile import tile
 from board import board
-
+from coordinate import coordinate
 
 import unittest
 import random
@@ -13,31 +13,34 @@ class tile_test_methods(unittest.TestCase):
 
     existing_vals = tile1.get_tile_mapping()
     existing_val = existing_vals[existing_vals.keys()[0]]
-    new_val = random.randint()
+    new_val = str(random.randint(0,100))
+    while new_val in existing_vals.values(): new_val =  str(random.randint(0,100))
     bad_setTo_val = existing_vals[existing_vals.keys()[1]]
     bad_existingVal = 10
 
     def test_set_not_existing_var(self):
-        response = self.tile1.set_tile(self.bad_existingVal,self.new_val)
+        response = self.tile1.set_tile(self.bad_existingVal, current_mapping=self.new_val)
         self.assertEqual(response,False,"Can't set var that does not exist")
-        response = self.tile1.set_tile(self.bad_existingVal)
+        response = self.tile1.set_tile(self.bad_existingVal, current_mapping=self.new_val)
         self.assertEqual(response,False,"Can't set var that does not exist")
 
     def test_setTo_existing_val(self):
-        response = self.tile1.set_tile(self.existing_val,self.bad_setTo_val)
+        response = self.tile1.set_tile(self.existing_val,current_mapping=self.bad_setTo_val)
         self.assertEqual(response,False,"Can't set a value the already exist in other val")
 
     def test_set_var(self):
     #   testing var set
         var_key = None
-        current_keys = self.tile1.get_tile_mapping()
+        current_keys = self.existing_vals
         for key in current_keys:
             if current_keys[key] == self.existing_val:
                 var_key = key
+                print var_key
                 break
 
         self.assertNotEqual(var_key,None,"existing_val error - does not exist")
-
+        print (self.existing_val,self.new_val)
+        print(self.tile1.get_tile_mapping())
         flag = self.tile1.set_tile(self.existing_val,self.new_val)
         self.assertEqual(flag,True)
 
@@ -51,7 +54,7 @@ class tile_test_methods(unittest.TestCase):
         #self.assertEqual(response,self.new_val)
 
     def test_set_to_same_val(self):
-        response = self.tile1.set_tile(previous_mapping = self.existing_val)
+        response = self.tile1.set_tile(self.existing_val, self.existing_val)
         self.assertEqual(response,True)
 
     def test_isLegal_val(self):
@@ -62,11 +65,11 @@ class tile_test_methods(unittest.TestCase):
         self.assertEqual(response,True)
 
     def test_direction_identifier(self):
-        val = self.tile1.get_directions_dict().values()[0]
+        val = self.tile1.get_car_directions().values()[0]
         response = self.tile1.isDirection_available(val)
         self.assertEqual(response,True)
         randomized= random.randrange(0,100)
-        while randomized in self.tile1.get_directions_dict().keys():
+        while randomized in self.tile1.get_car_directions().keys():
             randomized= random.randrange(0,100)
         response = self.tile1.isDirection_available(randomized)
         self.assertEqual(response,False)
@@ -148,12 +151,25 @@ class board_test_methods(unittest.TestCase):
         self.assertEqual(cropped_board.get_board_size()['x'],x_param*2+1)
         self.assertEqual(cropped_board.get_board_size()['y'],y_param*2+1)
 
-        #x_illegal = 7
-        #y_illegal = 6
-        #cropped_board = sampleBoard.get_xy_map(x_illegal,y_illegal)
-        #self.assertEqual(cropped_board.get_board_size()['x'],x_original)
-        #self.assertEqual(cropped_board.get_board_size()['y'],y_original)
+class coordinate_test_methods(unittest.TestCase):
+
+    c_instance = None
 
 
+    def test_creation(self):
+        self.c_instance = coordinate(1,1)
+        self.assertTrue(isinstance(self.c_instance,coordinate),"coordinate was not created properly")
+        self.assertEqual(self.c_instance.get_y(),1)
+        self.assertEqual(self.c_instance.get_x(),1)
+    def test_creation_with_wrong_val(self):
+        self.c_instance = coordinate('a','a')
+        self.assertEqual(self.c_instance.get_y(),0)
+        self.assertEqual(self.c_instance.get_x(),0)
+    def test_coordinate_setting(self):
+        self.c_instance = coordinate(1,1)
+        self.c_instance.set_x(5)
+        self.c_instance.set_y(6)
+        self.assertEqual(self.c_instance.get_y(),6)
+        self.assertEqual(self.c_instance.get_x(),5)
 if __name__ == '__main__':
     unittest.main()

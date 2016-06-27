@@ -18,7 +18,7 @@ class tile():
             #'DIRECTIONS': self.get_directions_dict()
             }
 
-    def set_tile(self,previous_mapping,current_mapping = None):
+    def set_tile(self,previous_mapping,current_mapping ):
         """
         This method sets a new value to some tile, number should be larger than 0 and not set to any other variable
         :param previous_mapping: represents the tile we would like to set
@@ -116,6 +116,13 @@ class tile():
 
     def get_CarVal(self):
         return self.CAR
+
+    def isDirection_available(self,direction):
+        available_directions = self.get_car_directions()
+        for key in available_directions:
+            if available_directions[key] == direction:
+                return True
+        return False
 
     def __str__(self):
         return str(self._defaultVal)

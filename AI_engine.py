@@ -259,7 +259,7 @@ class engine_v2(engine_interface):
         free_val = self._board._tile.get_FreeVal()
         unmapped_val = self._board._tile.get_UnmappedVal()
         neighbor_counter = float(0)
-        neighbor_map = {free_val: 0.1, unmapped_val: 0.01, 'obstacle': 0}
+        neighbor_map = {free_val: 0.01, unmapped_val: 0.1, 'obstacle': 0}
         obstacle_rating = neighbor_map['obstacle']
         x_factor = factor[0]
         y_factor = factor[1]
@@ -313,7 +313,7 @@ class engine_v2(engine_interface):
         """
         available_directions = self._board._tile.get_car_directions()
         if available_directions['SU'] == self._direction:
-            if carX-(carY -coorY) <= coorX <= carX+(carY -coorY)and  carY >= coorY:
+            if carX-(carY - coorY) <= coorX <= carX+(carY - coorY)and  carY >= coorY:
                 return HIGH_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
         elif available_directions['RU'] == self._direction:
             if coorY <= carY and coorX >= carX:
@@ -374,12 +374,11 @@ class engine_v2(engine_interface):
         for indexY in range(0, board_size['y']):
             for indexX in range(0, board_size['x']):
                 currVal = self._board.get_cell_val(indexX,indexY)
-                if currVal != free_val and currVal != unmapped_val:
+                if currVal != unmapped_val:
                     continue
                 direction_grade = self.calculate_direction_factor(indexX, indexY)
                 neighbors_grade = self.calc_neighbors_factor(indexX, indexY, (1, 1))
                 calc_result = direction_grade * neighbors_grade
-                self._board._instance[indexY][indexX] = calc_result
                 if calc_result > bestResult:
                     bestResult = calc_result
                     bestCoordinate = coordinate(indexX, indexY)

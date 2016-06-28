@@ -21,8 +21,6 @@ class tile_test_methods(unittest.TestCase):
     def test_set_not_existing_var(self):
         response = self.tile1.set_tile(self.bad_existingVal, current_mapping=self.new_val)
         self.assertEqual(response,False,"Can't set var that does not exist")
-        response = self.tile1.set_tile(self.bad_existingVal, current_mapping=self.new_val)
-        self.assertEqual(response,False,"Can't set var that does not exist")
 
     def test_setTo_existing_val(self):
         response = self.tile1.set_tile(self.existing_val,current_mapping=self.bad_setTo_val)
@@ -171,5 +169,22 @@ class coordinate_test_methods(unittest.TestCase):
         self.c_instance.set_y(6)
         self.assertEqual(self.c_instance.get_y(),6)
         self.assertEqual(self.c_instance.get_x(),5)
+
+class board_test_method(unittest.TestCase):
+    _board_instance = None
+
+    def test_creation(self):
+        self._board_instance = board()
+        self.assertNotEqual(self._board_instance,None)
+        #   Need to check the correct class
+
+    def test_set_board(self):
+        random_board = [['1','2','3','4']
+        ,['1','2','3','4'],['1','2','3','4'],['1','2','3','4']]
+        self._board_instance.set_board(random_board)
+        self.assertEqual(self._board_instance._instance,random_board)
+
+
+
 if __name__ == '__main__':
     unittest.main()

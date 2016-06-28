@@ -71,12 +71,11 @@ class tile():
         :return: True if any variable uses this value, False otherwise
         """
         current_vals = self.get_tile_mapping()
-        istTaken = False
         for key in current_vals:
             if current_vals[key] == value:
-                istTaken = True
+                return True
 
-        return istTaken
+        return False
 
     #following methods designed to retrieve values of tile modes
 

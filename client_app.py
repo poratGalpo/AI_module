@@ -6,7 +6,7 @@ import ast
 import time
 
 
-CONF_FILE = '/home/osher/catkin_ws/src/odor/scripts/conf'
+CONF_FILE = 'conf'
 SLEEP_ON_CONNECTION_REFUSED = 5
 WAITING_ON_SOCKET = 2
 EXT_OK = 1

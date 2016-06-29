@@ -566,10 +566,8 @@ class board():
                     came_from, cost_so_far = a_star_search(diagram, (car_loc["x"], car_loc["y"]),
                                                (0, 0))
                     if self.is_dest_unreacable((0, 0), cost_so_far):
-                        print ("Done mapping!")
-                        return True
-        print ("Keep mapping!")
-        return False
+                        return True, "Done mapping!"
+        return False, "Keep mapping!"
 
 
         """

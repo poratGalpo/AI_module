@@ -80,7 +80,13 @@ class map_subscriber():
 
         ts = message_filters.TimeSynchronizer([odom_sub, occu_grid_sub], 10)
         ts.registerCallback(self.refresh_board)
-        self._listener = tf.TransformListener()
+        flag = False
+        while not flag : 
+            try:
+                self._listener = tf.TransformListener()
+            except:
+                continue
+            flag = True
         time.sleep(5)
         #rospy.spin()
 

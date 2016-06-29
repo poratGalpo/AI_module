@@ -36,7 +36,7 @@ def from_id_width(id, width):
 
 def draw_tile(graph, id, style, width):
     r = "."
-    if 'number' in style and id in style['number']: r = "%d" % style['number'][id]
+    #if 'number' in style and id in style['number']: r = "%d" % style['number'][id]
     if 'point_to' in style and style['point_to'].get(id, None) is not None:
         (x1, y1) = id
         (x2, y2) = style['point_to'][id]

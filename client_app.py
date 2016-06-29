@@ -33,7 +33,7 @@ def main_call():
     conf = load_configurations(CONF_FILE)
     if conf == False:
         return
-    s = socket.socket()         # Create a socket object
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)        # Create a socket object
     host = socket.gethostname() # Get local machine name
     port = conf['network']['port']                # Reserve a port for your service.
     flag = False
@@ -54,11 +54,21 @@ def main_call():
         while input!= 'stop':
 
             try:
-                s.send(input)
+                s.sendall(input)
+                # Look for the response
+                length = 0
+                data = s.recv(1)
+                while not data == '|' :
+                    length = length*10 + int(data)
+                    data = s.recv(1)
+
+                data = s.recv(length)
+                print >>sys.stderr, 'received "%s"' % data
                 input = raw_input()
             except:
+                print sys.exc_info()
                 break
-        s.send(input)
+        s.sendall(input)
         print "Closing program, thank you"
         s.close()
         sys.exit(EXT_OK)

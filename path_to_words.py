@@ -65,7 +65,7 @@ def print_rotation(robot_direction,yaw):
       degree = (8-abs(rotate))*45
     else:
       degree = rotate*45
-  print("turn "+str(degree)+" degrees to the "+direction)
+  return "turn "+str(degree)+" degrees to the " + direction+'\n'
 
 def path(path, yaw):
   i = 0
@@ -90,7 +90,7 @@ def get_path(path, yaw):
     text = ''
     i = 0
     while i != len(path) - 1:
-        print_rotation(get_direction(path[i], path[i + 1]), yaw)
+        text += print_rotation(get_direction(path[i], path[i + 1]), yaw)
         yaw = get_direction(path[i], path[i + 1])
         i = i + 1
         distance = 5

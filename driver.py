@@ -57,6 +57,7 @@ class driver():
     driver_name = ''
     _AI_engine = None
     s = None
+    c = None
     _nav_engine = None
     data = ''
     driver_conf = None
@@ -76,8 +77,8 @@ class driver():
         self.driver_control()
 
 
-    def send_to_client(self,message):
-        print message
+    def send_to_client(self, message):
+        self.c.sendall(str(len(message))+"|"+message)
 
 
     def handle_log_descriptor(self,operation='close',fileName='default_log',reWrite=False):
@@ -176,15 +177,15 @@ class driver():
         Note: There is an option of printing the map at the user's console, it is defined in the conf file
         :return: None
         """
-
+        current_board = None
         start_time = time.time()
         self.s.listen(5)
-        c, addr = self.s.accept()
-        data = c.recv(1024)
+        self.c, addr = self.s.accept()
+        data = self.c.recv(1024)
         print data
         while data != 'start':
             self.send_to_client("Illegal command, please type 'start' to start mapping")
-            data = c.recv(1024)
+            data = self.c.recv(1024)
         self.timer.timer_handler('start')
         self.write_to_log('Mapping process had started')
         if not self.start_process():
@@ -195,33 +196,34 @@ class driver():
         self.calculation_timer.timer_handler('pause')
         # Now starting to generate new optimal coordinates
         while data != 'stop' and data != 'home':
+            strBuilder = ""
             if self.driver_conf['general']['print_board']:
                 current_board = str(self._AI_engine._board)
-                self.send_to_client(current_board)
+                strBuilder += current_board +"\n\n"
             self.calculation_timer.timer_handler('resume')
             curr_optimal = self._AI_engine.calculate_optimal_coordinate(refreshBoard=True)
             self.calculation_timer.timer_handler('pause')
             # Sending the coordinate to the client
-            self.send_to_client(str(curr_optimal))
-            if curr_optimal.get_x() == -100 and curr_optimal.get_y() == -100:
-                self.write_to_log("Mapping is done")
-                break
+            strBuilder += str(curr_optimal) +"\n\n"
             if self.driver_conf['general']['print_steps']:
                 try:
                     print_navBoard = self.driver_conf['general']['print_navigation_board']
+                    strBuilder += print_navBoard + '\n\n'
                 except:
                     print_navBoard = False
                 self.calculation_timer.timer_handler('resume')
                 mapped_grid, final_path = self._nav_engine.navigate(self._AI_engine._board, curr_optimal,self._AI_engine._direction)
                 self.calculation_timer.timer_handler('pause')
                 if final_path is False:
-                    self.send_to_client('Coordinate unreachable')
+                    self.send_to_client(strBuilder+'Coordinate unreachable')
                 elif print_navBoard:
-                    self.send_to_client(mapped_grid)
+                    self.send_to_client(strBuilder+mapped_grid)
+                elif final_path is not None:
+                    self.send_to_client(strBuilder+final_path)
                 else:
-                    self.send_to_client(final_path)
+                    self.send_to_client(strBuilder)
 
-            data = c.recv(1024)
+            data = self.c.recv(1024)
             while data != 'ok' and data != 'pali':
                 if data == 'pause':
                     self.timer.timer_handler('pause')
@@ -230,17 +232,17 @@ class driver():
                     while data != 'resume':
                         print 'waiting for resuming scanning process'
                         time.sleep(2)
-                        data = c.recv(1024)
+                        data = self.c.recv(1024)
                     self.timer.timer_handler('resume')
                     print '\n\nResuming for scanning process'
                     self.write_to_log('Resuming for scanning process')
                 elif data == 'stop':
                     # If the user wishes to stop in the middle of the mapping
                     break
-                data = c.recv(1024)
+                data = self.c.recv(1024)
             if data == 'pali' and self._AI_engine._board.is_mapping_done():
-                new_msg = "Mapping is done !"
-                self.send_to_client(new_msg)
+                strBuilder +="Mapping is done !\n\n"
+                self.send_to_client(strBuilder)
                 self.write_to_log(new_msg)
                 data = 'stop'
                 
@@ -250,8 +252,8 @@ class driver():
 
         total_time = self.timer.timer_handler('stop')
         calculation_time = self.calculation_timer.timer_handler('stop')
-        message = 'Whole process took {0} seconds, calculation lasted {1} seconds'.format(str(total_time),str(calculation_time))
-        self.send_to_client(message)
+        strBuilder +='Whole process took {0} seconds, calculation lasted {1} seconds\n\n'.format(str(total_time),str(calculation_time))
+        self.send_to_client(strBuilder)
         self.write_to_log("Process terminated successfully! \n")
         self.handle_log_descriptor(operation='close')
         sys.exit(self.EXT_OK)

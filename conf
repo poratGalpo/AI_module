@@ -1,7 +1,7 @@
 {
 	"network":
 		{"ip"		:	"",
-		"port":6451,
+		"port_ops":6451,
 		"recv_port":6452,
 		},
 	"general":
@@ -9,7 +9,7 @@
 			"name": "galpo",
 			"print_steps":True,
 			"print_board":False,
-			"print_navigation_board":True,
+			"print_navigation_board":False,
 			"log_file":"LOG_FILE"
 		}
 }

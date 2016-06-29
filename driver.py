@@ -224,7 +224,7 @@ class driver():
                 self.send_to_client(strBuilder)
 
             data = self.c.recv(1024)
-            while data != 'ok' and data != 'pali':
+            while data != 'ok' and data != 'fail':
                 if data == 'pause':
                     self.timer.timer_handler('pause')
                     self.write_to_log('Mapping process had paused')
@@ -240,7 +240,7 @@ class driver():
                     # If the user wishes to stop in the middle of the mapping
                     break
                 data = self.c.recv(1024)
-            if data == 'pali':
+            if data == 'fail':
                 isDone, text = self._AI_engine._board.is_mapping_done()
                 strBuilder += text + "\n\n"
                 self.send_to_client(strBuilder)

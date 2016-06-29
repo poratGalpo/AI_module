@@ -185,6 +185,8 @@ class engine_v1(engine_interface):
         :return: Coordinate instance upon success, False otherwise
         """
         self._board, self._direction = self.receiver.get_board(refreshBoard = refreshBoard)
+        if self._board.is_mapping_done():
+            return coordinate(-100,-100)
         bestResult = -1
         bestCoordinate = None
         car_location = self._board.get_car_placement()
@@ -360,6 +362,8 @@ class engine_v2(engine_interface):
                 the coordinate will be <-1,-1>, False otherwise
         """
         self._board, self._direction = self.receiver.get_board(refreshBoard = refreshBoard)
+        if self._board.is_mapping_done():
+            return coordinate(-100,-100)
         bestResult = -1
         bestCoordinate = coordinate(-1,-1)
         #car_location = self._board.get_car_placement()

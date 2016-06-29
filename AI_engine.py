@@ -314,30 +314,30 @@ class engine_v2(engine_interface):
         available_directions = self._board._tile.get_car_directions()
         if available_directions['SU'] == self._direction:
             if carX-(carY - coorY) <= coorX <= carX+(carY - coorY)and  carY >= coorY:
-                return HIGH_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
+                return HIGH_PROB*(1 + self.calculate_distance(carX,coorX,carY,coorY))
         elif available_directions['RU'] == self._direction:
             if coorY <= carY and coorX >= carX:
-                return HIGH_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
+                return HIGH_PROB*(1 + self.calculate_distance(carX,coorX,carY,coorY))
         elif available_directions['RS'] == self._direction:
             if carY-(carX - coorX) <= coorY <= carY+(carX - coorX)and carX >= coorX:
-                return HIGH_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
+                return HIGH_PROB*(1 + self.calculate_distance(carX,coorX,carY,coorY))
         elif available_directions['RB'] == self._direction:
             if coorY >= carY and coorX >= carX:
-                return HIGH_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
+                return HIGH_PROB*(1 + self.calculate_distance(carX,coorX,carY,coorY))
         elif available_directions['SB'] == self._direction:
             if carX-(coorY- carY) <= coorX <= carX+(coorY - carY)and coorY >= carY :
-                return HIGH_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
+                return HIGH_PROB*(1 + self.calculate_distance(carX,coorX,carY,coorY))
         elif available_directions['LB'] == self._direction:
             if coorY >= carY and coorX <= carX:
-                return HIGH_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
+                return HIGH_PROB*(1 + self.calculate_distance(carX,coorX,carY,coorY))
         elif available_directions['LS'] == self._direction:
             if carY-(carX - coorX) <= coorY <= carY+(carX - coorX)and carX >= coorX:
-                return HIGH_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
+                return HIGH_PROB*(1 + self.calculate_distance(carX,coorX,carY,coorY))
         elif available_directions['LU'] == self._direction:
             if coorY <= carY and coorX <= carX:
-                return HIGH_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
+                return HIGH_PROB*(1 + self.calculate_distance(carX,coorX,carY,coorY))
 
-        return REG_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
+        return REG_PROB*(1 + self.calculate_distance(carX,coorX,carY,coorY))
 
     def get_initial_coordinate(self):
         """
@@ -474,30 +474,30 @@ class engine_v3(engine_interface):
         available_directions = self._board._tile.get_car_directions()
         if available_directions['SU'] == self._direction:
             if carX-(carY - coorY) <= coorX <= carX+(carY - coorY)and  carY >= coorY:
-                return HIGH_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
+                return HIGH_PROB*(1 + self.calculate_distance(carX,coorX,carY,coorY))
         elif available_directions['RU'] == self._direction:
             if coorY <= carY and coorX >= carX:
-                return HIGH_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
+                return HIGH_PROB*(1 + self.calculate_distance(carX,coorX,carY,coorY))
         elif available_directions['RS'] == self._direction:
             if carY-(carX - coorX) <= coorY <= carY+(carX - coorX)and carX >= coorX:
-                return HIGH_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
+                return HIGH_PROB*(1 + self.calculate_distance(carX,coorX,carY,coorY))
         elif available_directions['RB'] == self._direction:
             if coorY >= carY and coorX >= carX:
-                return HIGH_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
+                return HIGH_PROB*(1 + self.calculate_distance(carX,coorX,carY,coorY))
         elif available_directions['SB'] == self._direction:
             if carX-(coorY- carY) <= coorX <= carX+(coorY - carY)and coorY >= carY :
-                return HIGH_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
+                return HIGH_PROB*(1 + self.calculate_distance(carX,coorX,carY,coorY))
         elif available_directions['LB'] == self._direction:
             if coorY >= carY and coorX <= carX:
-                return HIGH_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
+                return HIGH_PROB*(1 + self.calculate_distance(carX,coorX,carY,coorY))
         elif available_directions['LS'] == self._direction:
             if carY-(carX - coorX) <= coorY <= carY+(carX - coorX)and carX >= coorX:
-                return HIGH_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
+                return HIGH_PROB*(1 + self.calculate_distance(carX,coorX,carY,coorY))
         elif available_directions['LU'] == self._direction:
             if coorY <= carY and coorX <= carX:
-                return HIGH_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
+                return HIGH_PROB*(1 + self.calculate_distance(carX,coorX,carY,coorY))
 
-        return REG_PROB*(1 + 1 / self.calculate_distance(carX,coorX,carY,coorY))
+        return REG_PROB*(1 + self.calculate_distance(carX,coorX,carY,coorY))
 
     def get_initial_coordinate(self):
         """

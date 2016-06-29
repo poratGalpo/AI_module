@@ -61,11 +61,11 @@ def main_call():
                 while not data == '|' :
                     length = length*10 + int(data)
                     data = s.recv(1)
-		data = ""
-		amount_received = 0
-		while amount_received < length:
-		  data += s.recv(16)
-		  amount_received = len(data)
+                data = ""
+                amount_received = 0
+                while amount_received < length:
+                    data += s.recv(16)
+                    amount_received = len(data)
                 print >>sys.stderr, 'received "%s"' % data
                 input = raw_input()
             except:

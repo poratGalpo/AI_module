@@ -141,7 +141,7 @@ class tile():
         self.CAR         =  '9'
         self._defaultVal = self.UNMAPPED
         self.data = self._defaultVal
-        self._directions = {'SU':'A','RU':'B', 'RS':'C', 'RB':'D', 'SB':'E','LB':'F', 'LS':'G', 'LU':'H'}
+        self._directions = {'SU':1,'RU':2, 'RS':3, 'RB':4, 'SB':5,'LB':6, 'LS':7, 'LU':8}
         """
         #   abbreviation map:
         {

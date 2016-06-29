@@ -51,7 +51,7 @@ class map_subscriber():
 
         grid_y = int(round((odom.pose.pose.position.x - occu_grid.info.origin.position.x) / occu_grid.info.resolution,0))
         grid_x = int(round((odom.pose.pose.position.y - occu_grid.info.origin.position.y) / occu_grid.info.resolution,0))
-        map[grid_y][grid_x] = self._tileVal_car
+        map[grid_x][grid_y] = self._tileVal_car
         while True:
             try:
                 (trans,rot) = self._listener.lookupTransform('/map', '/camera_link', rospy.Time(0))

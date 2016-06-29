@@ -160,7 +160,7 @@ class driver():
         :return: True upon success, False otherwise
         """
         try:
-            self._AI_engine = AI_engine.engine_v1()
+            self._AI_engine = AI_engine.engine_v2()
             self._nav_engine = nav.astar_navEngine()
             self.write_to_log('Process has started successfully')
         except:
@@ -198,14 +198,15 @@ class driver():
         while data != 'stop' and data != 'home':
             strBuilder = ""
             if self.driver_conf['general']['print_board']:
+                print ("printing board")
                 current_board = str(self._AI_engine._board)
                 strBuilder += current_board +"\n\n"
             self.calculation_timer.timer_handler('resume')
             curr_optimal = self._AI_engine.calculate_optimal_coordinate(refreshBoard=True)
             self.calculation_timer.timer_handler('pause')
             # Sending the coordinate to the client
-            strBuilder += str(curr_optimal) +"\n\n"
             if self.driver_conf['general']['print_steps']:
+                print ("printing steps")
                 try:
                     print_navBoard = self.driver_conf['general']['print_navigation_board']
                 except:
@@ -217,11 +218,14 @@ class driver():
                 self.calculation_timer.timer_handler('pause')
                 if final_path is False:
                     strBuilder += 'Coordinate unreachable'
+                    continue
                 elif print_navBoard:
+                    print ("printing navigation board")
                     strBuilder += mapped_grid
                 if final_path is not None:
                     strBuilder += final_path
                 self.send_to_client(strBuilder)
+                strBuilder = ""
 
             data = self.c.recv(1024)
             while data != 'ok' and data != 'fail':
@@ -243,7 +247,6 @@ class driver():
             if data == 'fail':
                 isDone, text = self._AI_engine._board.is_mapping_done()
                 strBuilder += text + "\n\n"
-                self.send_to_client(strBuilder)
                 if isDone:
                     self.write_to_log("done mappimg")
                     data = 'stop'
@@ -251,7 +254,8 @@ class driver():
         total_time = self.timer.timer_handler('stop')
         calculation_time = self.calculation_timer.timer_handler('stop')
         strBuilder +='Whole process took {0} seconds, calculation lasted {1} seconds\n\n'.format(str(total_time),str(calculation_time))
-        print(strBuilder)       
+        print(strBuilder)
+        strBuilder = ""       
         if not self.terminate_process():
             print 'Could not terminate properly:\n{0}\n'.format(sys.exc_info()[1])
             sys.exit(self.EXT_ERR)

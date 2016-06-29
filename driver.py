@@ -9,7 +9,7 @@ import struct
 from datetime import datetime
 
 
-class timer():
+class _timer():
     counter = None
     last_timing = None
 
@@ -63,8 +63,8 @@ class driver():
     data = ''
     driver_conf = None
     fileDes = None
-    timer = timer()
-    calculation_timer = timer()
+    timer = _timer()
+    calculation_timer = _timer()
     last_timing = None
 
     def __init__(self):

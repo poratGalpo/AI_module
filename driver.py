@@ -5,7 +5,6 @@ import ast
 import nav_engine as nav
 import time
 import tile
-import struct
 from datetime import datetime
 
 
@@ -58,7 +57,6 @@ class driver():
     driver_name = ''
     _AI_engine = None
     s = None
-    _send_socket = None
     _nav_engine = None
     data = ''
     driver_conf = None
@@ -71,12 +69,7 @@ class driver():
 
         if not self.load_configurations(self.CONF_FILE):
             raise self.driver_exception('Could not create configuration file\n')
-        ip = self.driver_conf['network']['ip']
-        port = self.driver_conf['network']['port_ops']
-        self.s = self.open_socket(ip,port)
-        port = self.driver_conf['network']['recv_port']
-        self._send_socket = self.open_socket(ip,port)
-        if self.s is False :
+        if not self.open_socket():
             raise self.driver_exception("Could not open a socket")
         self.driver_name = self.driver_conf['general']['name']
         self.handle_log_descriptor(operation='open',fileName=self.driver_conf['general']['log_file'],reWrite= True)
@@ -84,9 +77,7 @@ class driver():
 
 
     def send_to_client(self,message):
-        length = len(message)
-        self._send_socket.send(length)
-        self._send_socket.send(message)
+        print message
 
 
     def handle_log_descriptor(self,operation='close',fileName='default_log',reWrite=False):
@@ -291,35 +282,23 @@ class driver():
                 continue
         return None
 
-    def open_socket(self,ip,port):
+    def open_socket(self):
         """
         This method is responsible for opening a socket with a port number specified in the conf doc
         :return: True upon success, False otherwise
         """
+        print ("open socket")
+        ip = self.driver_conf["network"]["ip"]
+        port = self.driver_conf["network"]["port"]
         try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.bind((ip,port))
+            self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.s.bind((ip,port))
         except:
             print sys.exc_info()[1]
             return False
         #self.s.send('kaka')
         #sys.exit()
-        return s
-
-    def open_send_socket(self,ip,port):
-        flag = False
-
-        while not flag:
-            try:
-                time.sleep(2)
-                self._send_socket.connect((ip, port))
-                flag = True
-            except socket.error as e:
-                print 'connection refused, waiting..'
-                time.sleep(5)
-                continue
-
-            print 'Connection has been established successfully\n\n'
+        return True
 
 
 if __name__ == '__main__':

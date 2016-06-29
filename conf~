@@ -2,13 +2,14 @@
 	"network":
 		{"ip"		:	"",
 		"port":6451,
+		"recv_port":6452,
 		},
 	"general":
 		{
 			"name": "galpo",
 			"print_steps":True,
-			"print_board":True,
-			"print_navigation_board":False,
+			"print_board":False,
+			"print_navigation_board":True,
 			"log_file":"LOG_FILE"
 		}
 }

@@ -6,7 +6,7 @@ import ast
 import time
 
 
-CONF_FILE = '/home/osher/catkin_ws/src/odor/scripts/conf'
+CONF_FILE = 'conf'
 SLEEP_ON_CONNECTION_REFUSED = 5
 WAITING_ON_SOCKET = 2
 EXT_OK = 1
@@ -34,7 +34,7 @@ def main_call():
     if conf == False:
         return
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)        # Create a socket object
-    host = socket.gethostname() # Get local machine name
+    host = "192.168.43.108" # Get local machine name
     port = conf['network']['port']                # Reserve a port for your service.
     flag = False
 
@@ -61,8 +61,11 @@ def main_call():
                 while not data == '|' :
                     length = length*10 + int(data)
                     data = s.recv(1)
-
-                data = s.recv(length)
+		data = ""
+		amount_received = 0
+		while amount_received < length:
+		  data += s.recv(16)
+		  amount_received = len(data)
                 print >>sys.stderr, 'received "%s"' % data
                 input = raw_input()
             except:

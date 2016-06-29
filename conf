@@ -1,7 +1,7 @@
 {
 	"network":
 		{"ip"		:	"",
-		"port_ops":6451,
+		"port":6451,
 		"recv_port":6452,
 		},
 	"general":

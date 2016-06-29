@@ -34,7 +34,7 @@ def main_call():
     if conf == False:
         return
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)        # Create a socket object
-    host = "192.168.43.108" # Get local machine name
+    host = "localhost" # Get local machine name
     port = conf['network']['port']                # Reserve a port for your service.
     flag = False
 

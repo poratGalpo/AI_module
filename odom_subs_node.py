@@ -52,12 +52,12 @@ class map_subscriber():
         grid_y = int(round((odom.pose.pose.position.x - occu_grid.info.origin.position.x) / occu_grid.info.resolution,0))
         grid_x = int(round((odom.pose.pose.position.y - occu_grid.info.origin.position.y) / occu_grid.info.resolution,0))
         map[grid_y][grid_x] = self._tileVal_car
-
-        try:
-            (trans,rot) = self._listener.lookupTransform('/map', '/camera_link', rospy.Time(0))
-        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-            print sys.exc_info()
-            sys.exit()
+        while True:
+            try:
+                (trans,rot) = self._listener.lookupTransform('/map', '/camera_link', rospy.Time(0))
+                break
+            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                continue
         euler = tf.transformations.euler_from_quaternion(rot)
         yaw = euler[2]
         yaw = (yaw*180/pi)

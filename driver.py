@@ -132,7 +132,7 @@ class driver():
         try:
             self.driver_conf = ast.literal_eval(raw_conf)
         except:
-            print sys.exc_info()[1]
+            print sys.exc_info()
             return False
         return True
 
@@ -247,15 +247,15 @@ class driver():
                 if isDone:
                     self.write_to_log("done mappimg")
                     data = 'stop'
-                
+        
+        total_time = self.timer.timer_handler('stop')
+        calculation_time = self.calculation_timer.timer_handler('stop')
+        strBuilder +='Whole process took {0} seconds, calculation lasted {1} seconds\n\n'.format(str(total_time),str(calculation_time))
+        print(strBuilder)       
         if not self.terminate_process():
             print 'Could not terminate properly:\n{0}\n'.format(sys.exc_info()[1])
             sys.exit(self.EXT_ERR)
 
-        total_time = self.timer.timer_handler('stop')
-        calculation_time = self.calculation_timer.timer_handler('stop')
-        strBuilder +='Whole process took {0} seconds, calculation lasted {1} seconds\n\n'.format(str(total_time),str(calculation_time))
-        self.send_to_client(strBuilder)
         self.write_to_log("Process terminated successfully! \n")
         self.handle_log_descriptor(operation='close')
         sys.exit(self.EXT_OK)

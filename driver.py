@@ -208,20 +208,20 @@ class driver():
             if self.driver_conf['general']['print_steps']:
                 try:
                     print_navBoard = self.driver_conf['general']['print_navigation_board']
-                    strBuilder += print_navBoard + '\n\n'
                 except:
+                    print sys.exc_info()
+                    print ("could not read navigation board")
                     print_navBoard = False
                 self.calculation_timer.timer_handler('resume')
-                mapped_grid, final_path = self._nav_engine.navigate(self._AI_engine._board, curr_optimal,self._AI_engine._direction)
+                mapped_grid, final_path = self._nav_engine.navigate(self._AI_engine._board, curr_optimal,self._AI_engine._direction, getGrid=True)
                 self.calculation_timer.timer_handler('pause')
                 if final_path is False:
-                    self.send_to_client(strBuilder+'Coordinate unreachable')
+                    strBuilder += 'Coordinate unreachable'
                 elif print_navBoard:
-                    self.send_to_client(strBuilder+mapped_grid)
-                elif final_path is not None:
-                    self.send_to_client(strBuilder+final_path)
-                else:
-                    self.send_to_client(strBuilder)
+                    strBuilder += mapped_grid
+                if final_path is not None:
+                    strBuilder += final_path
+                self.send_to_client(strBuilder)
 
             data = self.c.recv(1024)
             while data != 'ok' and data != 'pali':
@@ -240,11 +240,13 @@ class driver():
                     # If the user wishes to stop in the middle of the mapping
                     break
                 data = self.c.recv(1024)
-            if data == 'pali' and self._AI_engine._board.is_mapping_done():
-                strBuilder +="Mapping is done !\n\n"
+            if data == 'pali':
+                isDone, text = self._AI_engine._board.is_mapping_done()
+                strBuilder += text + "\n\n"
                 self.send_to_client(strBuilder)
-                self.write_to_log(new_msg)
-                data = 'stop'
+                if isDone:
+                    self.write_to_log("done mappimg")
+                    data = 'stop'
                 
         if not self.terminate_process():
             print 'Could not terminate properly:\n{0}\n'.format(sys.exc_info()[1])
